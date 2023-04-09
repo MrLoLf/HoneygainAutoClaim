@@ -1,26 +1,25 @@
 # HoneygainAutoClaim
 
-HoneygainAutoClaim is a simple Python script that **automatically claims your daily bonus** from Honeygain. Honeygain is a 
-service that allows you to earn **passive income** by **sharing** your **internet** connection with others. You can learn more 
-about Honeygain [here](https://r.honeygain.me/ROSCH76C7D).
+HoneygainAutoClaim is a simple [Python](https://www.python.org/) script that **automatically claims your daily bonus** from [Honeygain](https://r.honeygain.me/ROSCH76C7D). Honeygain is a 
+service that allows you to earn **passive income** by **sharing** your **internet** connection with others.
 
 
 ## Requirements
-- Python 3
+- [Python 3](https://www.python.org/downloads/)
 
 
 ## Usage
-1. **Clone** or **download** this repository.
-2. Install the **required** modules with 
+- **Clone** or **download** this repository. 
+- Install the **required** modules with 
 ```commandline 
 pip install -r requirements.txt
 ```  
-3. Run the script with 
+- Run the script with 
 ```commandline
 python3 /absolut folder path/main.py
 ```
-4. [Create a schedule](#Create-a-schedule) to run the program every day.
-5. Enjoy your **daily bonus**!
+- [Create a schedule](#Create-a-schedule) to run the program every day.
+- Enjoy your **daily bonus**!
 
 
 ## Disclaimer
