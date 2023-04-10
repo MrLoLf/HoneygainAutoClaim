@@ -32,7 +32,7 @@ def create_config() -> None:
     cfg.set('url', 'pot', 'https://dashboard.honeygain.com/api/v1/contest_winnings')
     cfg.set('url', 'balance', 'https://dashboard.honeygain.com/api/v1/users/balances')
     cfg.set('url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
-    cfg.set('ulr', 'achievment_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
+    cfg.set('url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
 
     with open(config_path, 'w') as configfile:
         configfile.truncate(0)
@@ -158,6 +158,7 @@ def main() -> None:
         # header for all further requests
         header['Authorization'] = f'Bearer {token}'
 
+        # check if the token is valid by trying to get the current balance with it
         dashboard: Response = s.get(urls['balance'], headers=header)
         dashboard: dict = dashboard.json()
         if 'code' in dashboard and dashboard['code'] == 401:
@@ -165,19 +166,20 @@ def main() -> None:
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
 
-        # The post below sends the request, so that the claim gets made
+        # The post below sends the request, so that the pot claim gets made
         pot_claim: Response = s.post(urls['pot'], headers=header)
         pot_claim: dict = pot_claim.json()
-        # check for an invalid token
         print(pot_claim)
 
+        # get all achievements
         achievements: Response = s.get(urls['achievements'], headers=header)
         achievements: dict = achievements.json()
-        for achievment in achievements['data']:
-            if not achievment['is_claimed'] and achievment['progresses']['current_progress'] == \
-                    achievment['progresses']['total_progress:']:
-                print(f'Claimed {achievment["title"]}')
-                s.post(urls['achievement_claim'], json={"user_achievement_id": achievment['id']}, headers=header)
+        # Loop over all achievements and claim them, if completed.
+        for achievement in achievements['data']:
+            if not achievement['is_claimed'] and achievement['progresses'][0]['current_progress'] == \
+                    achievement['progresses'][0]['total_progress']:
+                s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']}, headers=header)
+                print(f'Claimed {achievement["title"]}')
 
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
