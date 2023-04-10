@@ -53,11 +53,6 @@ try:
     url_achievements: str = config.get('url', 'achievements')
     url_achievment_claim: str = config.get('url', 'achievment_claim')
 
-    # user credentials
-    payload: dict[str | str] = {
-        'email': config.get('user', 'email'),
-        'password': config.get('user', 'password')
-    }
 except configparser.NoOptionError:
     create_config()
     url_login: str = config.get('url', 'login')
@@ -66,7 +61,7 @@ except configparser.NoOptionError:
     url_achievements: str = config.get('url', 'achievements')
     url_achievment_claim: str = config.get('url', 'achievment_claim')
 
-    # user credentials
+# user credentials
     payload: dict[str | str] = {
         'email': config.get('user', 'email'),
         'password': config.get('user', 'password')
@@ -174,7 +169,7 @@ def main() -> None:
         achievements: Response = s.get(url_achievements, headers=header)
         achievements: dict = achievements.json()
         for achievment in achievements['data']:
-            if achievment['progresses']['current_progress'] == achievment['progresses']['total_progress:'] and not achievment['is_claimed']:
+            if not achievment['is_claimed'] and achievment['progresses']['current_progress'] == achievment['progresses']['total_progress:']:
                 print(f'Claimed {achievment["title"]}')
                 s.post(url_achievment_claim, json={"user_achievement_id": achievment['id']}, headers=header)
 
