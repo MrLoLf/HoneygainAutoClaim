@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import configparser
 import json
 import os
 import tempfile
@@ -31,6 +31,8 @@ def create_config() -> None:
     cfg.set('url', 'login', 'https://dashboard.honeygain.com/api/v1/users/tokens')
     cfg.set('url', 'pot', 'https://dashboard.honeygain.com/api/v1/contest_winnings')
     cfg.set('url', 'balance', 'https://dashboard.honeygain.com/api/v1/users/balances')
+    cfg.set('url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
+    cfg.set('ulr', 'achievment_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
 
     with open(config_path, 'w') as configfile:
         configfile.truncate(0)
@@ -43,17 +45,32 @@ if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
 
 config: ConfigParser = ConfigParser()
 config.read(config_path)
+try:
+    # urls to use
+    url_login: str = config.get('url', 'login')
+    url_pot: str = config.get('url', 'pot')
+    url_current_balance: str = config.get('url', 'balance')
+    url_achievements: str = config.get('url', 'achievements')
+    url_achievment_claim: str = config.get('url', 'achievment_claim')
 
-# urls to use
-url_login: str = config.get('url', 'login')
-url_pot: str = config.get('url', 'pot')
-url_current_balance: str = config.get('url', 'balance')
+    # user credentials
+    payload: dict[str | str] = {
+        'email': config.get('user', 'email'),
+        'password': config.get('user', 'password')
+    }
+except configparser.NoOptionError:
+    create_config()
+    url_login: str = config.get('url', 'login')
+    url_pot: str = config.get('url', 'pot')
+    url_current_balance: str = config.get('url', 'balance')
+    url_achievements: str = config.get('url', 'achievements')
+    url_achievment_claim: str = config.get('url', 'achievment_claim')
 
-# user credentials
-payload: dict[str | str] = {
-    'email': config.get('user', 'email'),
-    'password': config.get('user', 'password')
-}
+    # user credentials
+    payload: dict[str | str] = {
+        'email': config.get('user', 'email'),
+        'password': config.get('user', 'password')
+    }
 
 # default login header
 login_header: dict[str | str] = {
@@ -137,7 +154,7 @@ def main() -> None:
     """
     # starting a new session
     with requests.session() as s:
-        token = gen_token(s)
+        token: str = gen_token(s)
         # header for all further requests
         header['Authorization'] = f'Bearer {token}'
 
@@ -150,18 +167,25 @@ def main() -> None:
 
         # The post below sends the request, so that the claim gets made
         pot_claim: Response = s.post(url_pot, headers=header)
-        pot_claim: json = pot_claim.json()
+        pot_claim: dict = pot_claim.json()
         # check for an invalid token
         print(pot_claim)
 
+        achievements: Response = s.get(url_achievements, headers=header)
+        achievements: dict = achievements.json()
+        for achievment in achievements['data']:
+            if achievment['progresses']['current_progress'] == achievment['progresses']['total_progress:'] and not achievment['is_claimed']:
+                print(f'Claimed {achievment["title"]}')
+                s.post(url_achievment_claim, json={"user_achievement_id": achievment['id']}, headers=header)
+
         # gets the pot winning credits
         pot_winning: Response = s.get(url_pot, headers=header)
-        pot_winning: json = pot_winning.json()
+        pot_winning: dict = pot_winning.json()
         print(pot_winning)
 
         # gets the current balance
         balance: Response = s.get(url_current_balance, headers=header)
-        balance: json = balance.json()
+        balance: dict = balance.json()
         print(balance)
 
 
