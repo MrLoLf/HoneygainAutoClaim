@@ -40,32 +40,37 @@ def create_config() -> None:
         cfg.write(configfile)
 
 
+def get_urls(cfg: ConfigParser) -> dict:
+    """
+    :param cfg: confing object that contains the config
+    :return: a dictionary with all urls of the config
+    """
+    urls_conf = {'login': cfg.get('url', 'login'),
+                 'pot': cfg.get('url', 'pot'),
+                 'balance': cfg.get('url', 'balance'),
+                 'achievements': cfg.get('url', 'achievements'),
+                 'achievement_claim': cfg.get('url', 'achievement_claim')
+                 }
+    return urls_conf
+
+
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
     create_config()
 
 config: ConfigParser = ConfigParser()
 config.read(config_path)
-try:
-    # urls to use
-    url_login: str = config.get('url', 'login')
-    url_pot: str = config.get('url', 'pot')
-    url_current_balance: str = config.get('url', 'balance')
-    url_achievements: str = config.get('url', 'achievements')
-    url_achievment_claim: str = config.get('url', 'achievment_claim')
 
+try:
+    urls = get_urls(config)
 except configparser.NoOptionError:
     create_config()
-    url_login: str = config.get('url', 'login')
-    url_pot: str = config.get('url', 'pot')
-    url_current_balance: str = config.get('url', 'balance')
-    url_achievements: str = config.get('url', 'achievements')
-    url_achievment_claim: str = config.get('url', 'achievment_claim')
+    urls = get_urls(config)
 
 # user credentials
-    payload: dict[str | str] = {
-        'email': config.get('user', 'email'),
-        'password': config.get('user', 'password')
-    }
+payload: dict[str | str] = {
+    'email': config.get('user', 'email'),
+    'password': config.get('user', 'password')
+}
 
 # default login header
 login_header: dict[str | str] = {
@@ -109,7 +114,7 @@ def login(s: requests.session) -> json.loads:
     :param s: currently used session
     :return: json containing the new token
     """
-    token: Response = s.post(url_login, json=payload, headers=login_header)
+    token: Response = s.post(urls['login'], json=payload, headers=login_header)
     try:
         return json.loads(token.text)
     except json.decoder.JSONDecodeError:
@@ -153,7 +158,7 @@ def main() -> None:
         # header for all further requests
         header['Authorization'] = f'Bearer {token}'
 
-        dashboard: Response = s.get(url_current_balance, headers=header)
+        dashboard: Response = s.get(urls['balance'], headers=header)
         dashboard: dict = dashboard.json()
         if 'code' in dashboard and dashboard['code'] == 401:
             print('Invalid token generating new one.')
@@ -161,25 +166,26 @@ def main() -> None:
             header['Authorization'] = f'Bearer {token}'
 
         # The post below sends the request, so that the claim gets made
-        pot_claim: Response = s.post(url_pot, headers=header)
+        pot_claim: Response = s.post(urls['pot'], headers=header)
         pot_claim: dict = pot_claim.json()
         # check for an invalid token
         print(pot_claim)
 
-        achievements: Response = s.get(url_achievements, headers=header)
+        achievements: Response = s.get(urls['achievements'], headers=header)
         achievements: dict = achievements.json()
         for achievment in achievements['data']:
-            if not achievment['is_claimed'] and achievment['progresses']['current_progress'] == achievment['progresses']['total_progress:']:
+            if not achievment['is_claimed'] and achievment['progresses']['current_progress'] == \
+                    achievment['progresses']['total_progress:']:
                 print(f'Claimed {achievment["title"]}')
-                s.post(url_achievment_claim, json={"user_achievement_id": achievment['id']}, headers=header)
+                s.post(urls['achievement_claim'], json={"user_achievement_id": achievment['id']}, headers=header)
 
         # gets the pot winning credits
-        pot_winning: Response = s.get(url_pot, headers=header)
+        pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
         print(pot_winning)
 
         # gets the current balance
-        balance: Response = s.get(url_current_balance, headers=header)
+        balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
         print(balance)
 
