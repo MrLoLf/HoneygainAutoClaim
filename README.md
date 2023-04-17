@@ -18,7 +18,7 @@ service that allows you to earn **passive income** by **sharing** your **interne
 - **Clone** or **download** this repository. 
 - Install the **required** modules with 
 ```commandline 
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```  
 - Run the script with 
 ```commandline
