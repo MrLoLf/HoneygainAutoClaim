@@ -176,6 +176,10 @@ def main() -> None:
         achievements: dict = achievements.json()
         # Loop over all achievements and claim them, if completed.
         for achievement in achievements['data']:
+            if not achievement['is_claimed'] and achievement['title'] == 'Steady Gainer':
+                s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']}, headers=header)
+                print(f'Claimed {achievement["title"]}')
+                continue
             if not achievement['is_claimed'] and achievement['progresses'][0]['current_progress'] == \
                     achievement['progresses'][0]['total_progress']:
                 s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']}, headers=header)
