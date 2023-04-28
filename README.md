@@ -16,7 +16,7 @@ service that allows you to earn **passive income** by **sharing** your **interne
 
 ## Usage
 - **Clone** or **download** this repository. 
-- Navigate in to the directory `HoneyGainAutoClaim`
+- Navigate in to the directory `HoneygainAutoClaim`
 - Install the **required** modules with 
 ```commandline 
 python3 -m pip install -r requirements.txt
@@ -62,5 +62,5 @@ This script is **not** affiliated with or endorsed by Honeygain. Use it at your 
 ### Linux
 
 - ```commandline
-  nano /absoulut folder path/HoneyGainAutoClaim/Config/HoneygainConfig.toml
+  nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml
   ```
