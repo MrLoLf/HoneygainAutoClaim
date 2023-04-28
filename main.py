@@ -2,7 +2,6 @@
 import configparser
 import json
 import os
-import tempfile
 from configparser import ConfigParser
 
 import requests
