@@ -133,3 +133,6 @@ dmypy.json
 
 /Scripts/
 /Include/
+Config/
+HoneygainToken.json
+HoneygainConfig.toml

@@ -10,9 +10,9 @@ from requests import Response
 from getpass import getpass
 
 # path to the token file
-tmp_dir: str = tempfile.gettempdir()
-token_file: str = os.path.join(tmp_dir, 'HoneygainToken.json')
-config_path: str = os.path.join(tmp_dir, 'HoneygainConfig.toml')
+config: str = 'Config'
+token_file: str = config + '/HoneygainToken.json'
+config_path: str = config + '/HoneygainConfig.toml'
 
 
 def create_config() -> None:
@@ -53,6 +53,9 @@ def get_urls(cfg: ConfigParser) -> dict:
                  }
     return urls_conf
 
+
+if not os.path.exists(config):
+    os.mkdir(config)
 
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
     create_config()
