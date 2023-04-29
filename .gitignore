@@ -134,5 +134,7 @@ dmypy.json
 /Scripts/
 /Include/
 Config/
+Logs/
+HonegainAutoClaim.log
 HoneygainToken.json
 HoneygainConfig.toml

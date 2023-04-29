@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 import configparser
 import json
+import logging
 import os
 from configparser import ConfigParser
+from getpass import getpass
 
 import requests
 from requests import Response
-from getpass import getpass
 
 # path to the token file
 config_folder: str = 'Config'
 token_file: str = config_folder + '/HoneygainToken.json'
 config_path: str = config_folder + '/HoneygainConfig.toml'
+
+# Creates a Log
+if not os.path.exists('Logs'):
+    os.mkdir('Logs')
+logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encoding='utf-8', level=logging.INFO,
+                    format='%(levelname)s ' '%(asctime)s ' '%(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+logging.info("Started HoneygainAutoClaim!")
 
 
 def create_config() -> None:
@@ -20,18 +28,22 @@ def create_config() -> None:
     """
     cfg: ConfigParser = ConfigParser()
 
-    cfg.add_section('user')
+    cfg.add_section('User')
     email: str = input("Email: ")
-    cfg.set('user', 'email', f'{email}')
+    cfg.set('User', 'email', f'{email}')
     password: str = getpass()
-    cfg.set('user', 'password', f"{password}")
+    cfg.set('User', 'password', f"{password}")
 
-    cfg.add_section('url')
-    cfg.set('url', 'login', 'https://dashboard.honeygain.com/api/v1/users/tokens')
-    cfg.set('url', 'pot', 'https://dashboard.honeygain.com/api/v1/contest_winnings')
-    cfg.set('url', 'balance', 'https://dashboard.honeygain.com/api/v1/users/balances')
-    cfg.set('url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
-    cfg.set('url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
+    cfg.add_section('Settings')
+    cfg.set('Settings', 'Lucky Pot', 'True')
+    cfg.set('Settings', 'Achievements', 'True')
+
+    cfg.add_section('Url')
+    cfg.set('Url', 'login', 'https://dashboard.honeygain.com/api/v1/users/tokens')
+    cfg.set('Url', 'pot', 'https://dashboard.honeygain.com/api/v1/contest_winnings')
+    cfg.set('Url', 'balance', 'https://dashboard.honeygain.com/api/v1/users/balances')
+    cfg.set('Url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
+    cfg.set('Url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
 
     with open(config_path, 'w') as configfile:
         configfile.truncate(0)
@@ -44,34 +56,44 @@ def get_urls(cfg: ConfigParser) -> dict:
     :param cfg: confing object that contains the config
     :return: a dictionary with all urls of the config
     """
-    urls_conf = {'login': cfg.get('url', 'login'),
-                 'pot': cfg.get('url', 'pot'),
-                 'balance': cfg.get('url', 'balance'),
-                 'achievements': cfg.get('url', 'achievements'),
-                 'achievement_claim': cfg.get('url', 'achievement_claim')
-                 }
+    urls_conf: dict = {}
+    try:
+        urls_conf: dict = {'login': cfg.get('Url', 'login'),
+                           'pot': cfg.get('Url', 'pot'),
+                           'balance': cfg.get('Url', 'balance'),
+                           'achievements': cfg.get('Url', 'achievements'),
+                           'achievement_claim': cfg.get('Url', 'achievement_claim')}
+    except configparser.NoOptionError or configparser.NoSectionError:
+        logging.info('Generating new Config.')
+        create_config()
     return urls_conf
 
 
 if not os.path.exists(config_folder):
+    logging.info('Created config folder.')
     os.mkdir(config_folder)
 
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
+    logging.info('Creating config file.')
     create_config()
 
 config: ConfigParser = ConfigParser()
 config.read(config_path)
-
-try:
-    urls = get_urls(config)
-except configparser.NoOptionError:
+if not config.has_section('User') or not config.has_section('Settings') or not config.has_section('Url'):
+    logging.info('Generating new Config.')
     create_config()
-    urls = get_urls(config)
+urls = get_urls(config)
+try:
+    lucky_pot = config.getboolean('Settings', 'Lucky Pot')
+    achievements_bool = config.getboolean('Settings', 'Achievements')
+except configparser.NoOptionError or configparser.NoSectionError:
+    logging.info('Generating new Config.')
+    create_config()
 
 # user credentials
 payload: dict[str | str] = {
-    'email': config.get('user', 'email'),
-    'password': config.get('user', 'password')
+    'email': config.get('User', 'email'),
+    'password': config.get('User', 'password')
 }
 
 # default login header
@@ -165,38 +187,52 @@ def main() -> None:
         dashboard: dict = dashboard.json()
         if 'code' in dashboard and dashboard['code'] == 401:
             print('Invalid token generating new one.')
+            logging.info('Invalid token generating new one.')
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
-
-        # The post below sends the request, so that the pot claim gets made
-        pot_claim: Response = s.post(urls['pot'], headers=header)
-        pot_claim: dict = pot_claim.json()
-        print(pot_claim)
-
-        # get all achievements
-        achievements: Response = s.get(urls['achievements'], headers=header)
-        achievements: dict = achievements.json()
-        # Loop over all achievements and claim them, if completed.
-        for achievement in achievements['data']:
-            try:
-                if not achievement['is_claimed'] and achievement['progresses'][0]['current_progress'] == \
-                        achievement['progresses'][0]['total_progress']:
-                    s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']}, headers=header)
-                    print(f'Claimed {achievement["title"]}')
-            except IndexError:
-                if not achievement['is_claimed']:
-                    s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']}, headers=header)
-                    print(f'Claimed {achievement["title"]}')
 
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
         print(pot_winning)
 
+        if lucky_pot and pot_winning['data']['winning_credits'] == 0:
+            # The post below sends the request, so that the pot claim gets made
+            pot_claim: Response = s.post(urls['pot'], headers=header)
+            pot_claim: dict = pot_claim.json()
+            print(pot_claim)
+            logging.info(f'{pot_claim["details"]}.')
+        if achievements_bool:
+            # get all achievements
+            achievements: Response = s.get(urls['achievements'], headers=header)
+            achievements: dict = achievements.json()
+            # Loop over all achievements and claim them, if completed.
+            for achievement in achievements['data']:
+                try:
+                    if not achievement['is_claimed'] and achievement['progresses'][0]['current_progress'] == \
+                            achievement['progresses'][0]['total_progress']:
+                        s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']},
+                               headers=header)
+                        print(f'Claimed {achievement["title"]}.')
+                        logging.info(f'Claimed {achievement["title"]}.')
+                except IndexError:
+                    if not achievement['is_claimed']:
+                        s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']},
+                               headers=header)
+                        print(f'Claimed {achievement["title"]}.')
+                        logging.info(f'Claimed {achievement["title"]}.')
+
+        # gets the pot winning credits
+        pot_winning: Response = s.get(urls['pot'], headers=header)
+        pot_winning: dict = pot_winning.json()
+        print(pot_winning)
+        logging.info(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
         # gets the current balance
         balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
         print(balance)
+        logging.info(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
+        logging.info('Closing HoneygainAutoClaim!')
 
 
 if __name__ == '__main__':
