@@ -196,12 +196,12 @@ def main() -> None:
         pot_winning: dict = pot_winning.json()
         print(pot_winning)
 
-        if lucky_pot and pot_winning['data']['winning_credits'] == 0:
+        if lucky_pot and pot_winning['data']['winning_credits'] is None:
             # The post below sends the request, so that the pot claim gets made
             pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
             print(pot_claim)
-            logging.info(f'{pot_claim["details"]}.')
+            logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
         if achievements_bool:
             # get all achievements
             achievements: Response = s.get(urls['achievements'], headers=header)
