@@ -26,11 +26,12 @@ def create_config() -> None:
     """
     Creates a config with default values.
     """
+    logging.warning('Generating new Config.')
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
     email: str = input("Email: ")
-    cfg.set('User', 'email', f'{email}')
+    cfg.set('User', 'email', f"{email}")
     password: str = getpass()
     cfg.set('User', 'password', f"{password}")
 
@@ -51,85 +52,79 @@ def create_config() -> None:
         cfg.write(configfile)
 
 
-def get_urls(cfg: ConfigParser) -> dict:
+def get_urls(cfg: ConfigParser) -> dict[str | str]:
     """
     :param cfg: confing object that contains the config
     :return: a dictionary with all urls of the config
     """
-    urls_conf: dict = {}
+    urls_conf: dict[str | str] = {}
     try:
-        urls_conf: dict = {'login': cfg.get('Url', 'login'),
-                           'pot': cfg.get('Url', 'pot'),
-                           'balance': cfg.get('Url', 'balance'),
-                           'achievements': cfg.get('Url', 'achievements'),
-                           'achievement_claim': cfg.get('Url', 'achievement_claim')}
+        urls_conf: dict[str | str] = {'login': cfg.get('Url', 'login'),
+                                      'pot': cfg.get('Url', 'pot'),
+                                      'balance': cfg.get('Url', 'balance'),
+                                      'achievements': cfg.get('Url', 'achievements'),
+                                      'achievement_claim': cfg.get('Url', 'achievement_claim')}
     except configparser.NoOptionError or configparser.NoSectionError:
-        logging.info('Generating new Config.')
         create_config()
     return urls_conf
 
 
+def get_login(cfg: ConfigParser) -> dict[str | str]:
+    """
+        :param cfg: confing object that contains the config
+        :return: a dictionary with all user information of the config
+        """
+    user: dict[str | str] = {}
+    try:
+        user: dict[str | str] = {'email': cfg.get('User', 'email'),
+                                 'password': cfg.get('User', 'password')}
+    except configparser.NoOptionError or configparser.NoSectionError:
+        create_config()
+    return user
+
+
+def get_settings(cfg: ConfigParser) -> dict[str | bool]:
+    """
+        :param cfg: confing object that contains the config
+        :return: a dictionary with all settings of the config
+        """
+    settings_dict: dict[str | bool] = {}
+    try:
+        settings_dict: dict[str | bool] = {'lucky_pot': cfg.getboolean('Settings', 'Lucky Pot'),
+                                           'achievements_bool': cfg.getboolean('Settings', 'Achievements')}
+    except configparser.NoOptionError or configparser.NoSectionError:
+        create_config()
+    return settings_dict
+
+
 if not os.path.exists(config_folder):
-    logging.info('Created config folder.')
+    logging.warning('Creating config folder.')
     os.mkdir(config_folder)
 
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
-    logging.info('Creating config file.')
     create_config()
 
 config: ConfigParser = ConfigParser()
 config.read(config_path)
+
 if not config.has_section('User') or not config.has_section('Settings') or not config.has_section('Url'):
-    logging.info('Generating new Config.')
     create_config()
-urls = get_urls(config)
+
 try:
-    lucky_pot = config.getboolean('Settings', 'Lucky Pot')
-    achievements_bool = config.getboolean('Settings', 'Achievements')
+    # settings
+    settings: dict[str | str] = get_settings(config)
+    # urls
+    urls: dict[str | str] = get_urls(config)
+    # user credentials
+    payload: dict[str | str] = get_login(config)
 except configparser.NoOptionError or configparser.NoSectionError:
-    logging.info('Generating new Config.')
     create_config()
-
-# user credentials
-payload: dict[str | str] = {
-    'email': config.get('User', 'email'),
-    'password': config.get('User', 'password')
-}
-
-# default login header
-login_header: dict[str | str] = {
-    'Host': 'dashboard.honeygain.com',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate',
-    'Content-Type': 'application/json',
-    'Content-Length': '68',
-    'Origin': 'https://dashboard.honeygain.com',
-    'Connection': 'keep-alive',
-    'Referer': 'https://dashboard.honeygain.com/login',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-GPC': '1',
-    'TE': 'trailers'
-}
-header: dict[str | str] = {
-    'Host': 'dashboard.honeygain.com',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate',
-    'Origin': 'https://dashboard.honeygain.com',
-    'Connection': 'keep-alive',
-    'Referer': 'https://dashboard.honeygain.com/',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-GPC': '1',
-    'Content-Length': '0',
-    'TE': 'trailers'
-}
+    # settings
+    settings: dict[str | str] = get_settings(config)
+    # urls
+    urls: dict[str | str] = get_urls(config)
+    # user credentials
+    payload: dict[str | str] = get_login(config)
 
 
 def login(s: requests.session) -> json.loads:
@@ -138,10 +133,12 @@ def login(s: requests.session) -> json.loads:
     :param s: currently used session
     :return: json containing the new token
     """
-    token: Response = s.post(urls['login'], json=payload, headers=login_header)
+    logging.warning('Logging in to honeygain!')
+    token: Response = s.post(urls['login'], json=payload)
     try:
         return json.loads(token.text)
     except json.decoder.JSONDecodeError:
+        logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
         print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
         exit(-1)
 
@@ -155,6 +152,7 @@ def gen_token(s: requests.session, invalid: bool = False) -> str:
     """
     # creating token.json if not existent
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
+        logging.warning('Generating new Token.')
         # generating new token if the file is empty or is invalid
         with open(token_file, 'w') as f:
             # remove what ever was in the file and jump to the beginning
@@ -180,7 +178,7 @@ def main() -> None:
     with requests.session() as s:
         token: str = gen_token(s)
         # header for all further requests
-        header['Authorization'] = f'Bearer {token}'
+        header: dict[str | str] = {'Authorization': f'Bearer {token}'}
 
         # check if the token is valid by trying to get the current balance with it
         dashboard: Response = s.get(urls['balance'], headers=header)
@@ -196,13 +194,13 @@ def main() -> None:
         pot_winning: dict = pot_winning.json()
         print(pot_winning)
 
-        if lucky_pot and pot_winning['data']['winning_credits'] is None:
+        if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
             # The post below sends the request, so that the pot claim gets made
             pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
             print(pot_claim)
             logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
-        if achievements_bool:
+        if settings['achievements_bool']:
             # get all achievements
             achievements: Response = s.get(urls['achievements'], headers=header)
             achievements: dict = achievements.json()
