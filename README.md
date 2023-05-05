@@ -1,4 +1,3 @@
-cccccbhfgnvjbtcffibbrdtdudnthnhkenhibgthunkl  
 # HoneygainAutoClaim  
 [![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)  
   
