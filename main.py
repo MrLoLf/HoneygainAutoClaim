@@ -20,13 +20,14 @@ if not os.path.exists('Logs'):
 logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encoding='utf-8', level=logging.INFO,
                     format='%(levelname)s ' '%(asctime)s ' '%(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 logging.info("Started HoneygainAutoClaim!")
-
+print('Started HoneygainAutoClaim!')
 
 def create_config() -> None:
     """
     Creates a config with default values.
     """
     logging.warning('Generating new Config.')
+    print('Generating new Config!')
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
@@ -54,7 +55,7 @@ def create_config() -> None:
 
 def get_urls(cfg: ConfigParser) -> dict[str | str]:
     """
-    :param cfg: confing object that contains the config
+    :param cfg: config object that contains the config
     :return: a dictionary with all urls of the config
     """
     urls_conf: dict[str | str] = {}
@@ -71,7 +72,7 @@ def get_urls(cfg: ConfigParser) -> dict[str | str]:
 
 def get_login(cfg: ConfigParser) -> dict[str | str]:
     """
-        :param cfg: confing object that contains the config
+        :param cfg: config object that contains the config
         :return: a dictionary with all user information of the config
         """
     user: dict[str | str] = {}
@@ -85,7 +86,7 @@ def get_login(cfg: ConfigParser) -> dict[str | str]:
 
 def get_settings(cfg: ConfigParser) -> dict[str | bool]:
     """
-        :param cfg: confing object that contains the config
+        :param cfg: config object that contains the config
         :return: a dictionary with all settings of the config
         """
     settings_dict: dict[str | bool] = {}
@@ -98,7 +99,8 @@ def get_settings(cfg: ConfigParser) -> dict[str | bool]:
 
 
 if not os.path.exists(config_folder):
-    logging.warning('Creating config folder.')
+    logging.warning('Creating config folder!')
+    print('Creating config folder!')
     os.mkdir(config_folder)
 
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
@@ -133,7 +135,8 @@ def login(s: requests.session) -> json.loads:
     :param s: currently used session
     :return: json containing the new token
     """
-    logging.warning('Logging in to honeygain!')
+    logging.warning('Logging in to Honeygain!')
+    print('Logging in to Honeygain!')
     token: Response = s.post(urls['login'], json=payload)
     try:
         return json.loads(token.text)
@@ -152,7 +155,8 @@ def gen_token(s: requests.session, invalid: bool = False) -> str:
     """
     # creating token.json if not existent
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
-        logging.warning('Generating new Token.')
+        logging.warning('Generating new Token!')
+        print('Generating new Token!')
         # generating new token if the file is empty or is invalid
         with open(token_file, 'w') as f:
             # remove what ever was in the file and jump to the beginning
@@ -192,13 +196,12 @@ def main() -> None:
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
-        print(pot_winning)
 
         if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
             # The post below sends the request, so that the pot claim gets made
             pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
-            print(pot_claim)
+            print(f'Claimed {pot_claim["data"]["credits"]} Credits.')
             logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
         if settings['achievements_bool']:
             # get all achievements
@@ -223,13 +226,14 @@ def main() -> None:
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
-        print(pot_winning)
+        print(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
         logging.info(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
         # gets the current balance
         balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
-        print(balance)
+        print(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
         logging.info(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
+        print('Closing HoneygainAutoClaim!')
         logging.info('Closing HoneygainAutoClaim!')
 
 
