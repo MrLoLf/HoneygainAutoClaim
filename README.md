@@ -44,7 +44,7 @@ docker build -t honeygainautoclaim .
 ```  
 - To run the docker container  
 ```commandline  
-docker run -it honeygainautoclaim  
+docker run -it --restart unless-stopped honeygainautoclaim  
 ```  
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
