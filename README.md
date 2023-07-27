@@ -38,6 +38,8 @@ python3 /absolut folder path/main.py
 - Enjoy your **daily bonus**!  
   
 ### Docker  
+- **Clone** or **download** this repository.  
+- Navigate in to the directory `HoneygainAutoClaim`  
 - To build the Dockerfile run the command below:  
 ```commandline  
 docker build -t honeygainautoclaim .
