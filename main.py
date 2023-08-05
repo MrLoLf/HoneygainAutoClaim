@@ -147,7 +147,7 @@ def login(s: requests.session) -> json.loads:
         exit(-1)
 
 
-def gen_token(s: requests.session, invalid: bool = False) -> str|None:
+def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     """
     Gets the token from the HoneygainToken.json if existent and valid, if not generates a new one.
     :param s: currently used session
