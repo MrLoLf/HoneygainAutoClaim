@@ -165,18 +165,20 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
             f.seek(0)
             # get json and write it to the file
             token: dict = login(s)
+            # check if token is valid and doesn't have false credentials in it.
+            if "title" in token:
+                print("Wrong Login Credentials. Please enter the right ones.")
+                logging.error("Wrong Login Credentials. Please enter the right ones.")
+                return None
             json.dump(token, f)
 
     # reading the token from the file
     with open(token_file, 'r+') as f:
         token: dict = json.load(f)
-    try:
-        # get the token
-        return token["data"]["access_token"]
-    except KeyError:
-        print("Wrong Login Credentials. Please enter the right ones.")
-        logging.error("Wrong Login Credentials. Please enter the right ones.")
-        return None
+
+    # get the token
+    return token["data"]["access_token"]
+
 
 
 def main() -> None:
