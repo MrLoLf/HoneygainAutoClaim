@@ -24,8 +24,14 @@ to delete this bot I'll do it.
 ## <a id='usage'></a>Usage  
   
 ### Windows/Linux  
-- **Clone** or **download** this repository.  
-- Navigate in to the directory `HoneygainAutoClaim`  
+- **Clone** or **download** this repository.
+```commandline
+git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+```
+- Navigate in to the directory `HoneygainAutoClaim`
+```commandline
+cd HoneygainAutoClaim
+```
 - Install the **required** modules with  
 ```commandline  
 python3 -m pip install -r requirements.txt  
@@ -38,8 +44,14 @@ python3 /absolut folder path/main.py
 - Enjoy your **daily bonus**!  
   
 ### Docker  
-- **Clone** or **download** this repository.  
-- Navigate in to the directory `HoneygainAutoClaim`  
+- **Clone** or **download** this repository.
+```commandline
+git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+```
+- Navigate in to the directory `HoneygainAutoClaim`
+```commandline
+cd HoneygainAutoClaim
+```  
 - To build the Dockerfile run the command below:  
 ```commandline  
 docker build -t honeygainautoclaim .

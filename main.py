@@ -22,6 +22,7 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
 logging.info("Started HoneygainAutoClaim!")
 print('Started HoneygainAutoClaim!')
 
+
 def create_config() -> None:
     """
     Creates a config with default values.
@@ -169,9 +170,13 @@ def gen_token(s: requests.session, invalid: bool = False) -> str:
     # reading the token from the file
     with open(token_file, 'r+') as f:
         token: dict = json.load(f)
-
-    # get the token
-    return token["data"]["access_token"]
+    try:
+        # get the token
+        return token["data"]["access_token"]
+    except KeyError:
+        print("Wrong Login Credentials. Please enter the right ones.")
+        logging.error("Wrong Login Credentials. Please enter the right ones.")
+        return None
 
 
 def main() -> None:
@@ -181,6 +186,10 @@ def main() -> None:
     # starting a new session
     with requests.session() as s:
         token: str = gen_token(s)
+        if token is None:
+            print("Closing HoneygainAutoClaim! Due to false login Credentials.")
+            logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
+            exit(-1)
         # header for all further requests
         header: dict[str | str] = {'Authorization': f'Bearer {token}'}
 
