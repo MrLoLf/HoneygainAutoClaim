@@ -36,6 +36,10 @@ cd HoneygainAutoClaim
 ```commandline  
 python3 -m pip install -r requirements.txt  
 ```  
+- If you run the cron job it's recommended to navigate back to your home directory with:
+```commandline
+cd ~
+```
 - Run the script with  
 ```commandline  
 python3 /absolut folder path/main.py  
