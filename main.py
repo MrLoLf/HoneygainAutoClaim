@@ -191,7 +191,6 @@ def achievments_claim(s: requests.session) -> bool:
         # get all achievements
         achievements: Response = s.get(urls['achievements'], headers=header)
         achievements: dict = achievements.json()
-        print(achievements)
         # Loop over all achievements and claim them, if completed.
         try:
             for achievement in achievements['data']:
