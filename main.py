@@ -245,7 +245,6 @@ def main() -> None:
             logging.info('Invalid token generating new one.')
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
-        print(dashboard)
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
