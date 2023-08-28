@@ -91,7 +91,8 @@ docker ps -a
 crontab -e  
 ```  
 or the windows equivalent via the Task Scheduler.  
-3. Add this line at the **bottom**   `0 8 * * * docker start <container_id>`. Make sure to replace <container_id> with the ID of your Docker container.  
+3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. Make sure to replace <container_id> with the ID of your Docker container.
+After adding the start command you have to stop the docker conatiner or it will run multiple times per minute.
   
   
 #### Windows  
