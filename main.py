@@ -14,6 +14,8 @@ config_folder: str = 'Config'
 token_file: str = config_folder + '/HoneygainToken.json'
 config_path: str = config_folder + '/HoneygainConfig.toml'
 
+header: dict[str | str] = {'Authorization': ''}
+
 # Creates a Log
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
@@ -147,7 +149,7 @@ def login(s: requests.session) -> json.loads:
         exit(-1)
 
 
-def gen_token(s: requests.session, invalid: bool = False) -> str:
+def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     """
     Gets the token from the HoneygainToken.json if existent and valid, if not generates a new one.
     :param s: currently used session
@@ -165,6 +167,11 @@ def gen_token(s: requests.session, invalid: bool = False) -> str:
             f.seek(0)
             # get json and write it to the file
             token: dict = login(s)
+            # check if token is valid and doesn't have false credentials in it.
+            if "title" in token:
+                print("Wrong Login Credentials. Please enter the right ones.")
+                logging.error("Wrong Login Credentials. Please enter the right ones.")
+                return None
             json.dump(token, f)
 
     # reading the token from the file
@@ -175,40 +182,17 @@ def gen_token(s: requests.session, invalid: bool = False) -> str:
     return token["data"]["access_token"]
 
 
-def main() -> None:
+def achievments_claim(s: requests.session) -> bool:
     """
-    Automatically claims the Lucky pot and prints out current stats.
+    function to claim achievements
     """
-    # starting a new session
-    with requests.session() as s:
-        token: str = gen_token(s)
-        # header for all further requests
-        header: dict[str | str] = {'Authorization': f'Bearer {token}'}
-
-        # check if the token is valid by trying to get the current balance with it
-        dashboard: Response = s.get(urls['balance'], headers=header)
-        dashboard: dict = dashboard.json()
-        if 'code' in dashboard and dashboard['code'] == 401:
-            print('Invalid token generating new one.')
-            logging.info('Invalid token generating new one.')
-            token: str = gen_token(s, True)
-            header['Authorization'] = f'Bearer {token}'
-
-        # gets the pot winning credits
-        pot_winning: Response = s.get(urls['pot'], headers=header)
-        pot_winning: dict = pot_winning.json()
-
-        if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
-            # The post below sends the request, so that the pot claim gets made
-            pot_claim: Response = s.post(urls['pot'], headers=header)
-            pot_claim: dict = pot_claim.json()
-            print(f'Claimed {pot_claim["data"]["credits"]} Credits.')
-            logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
-        if settings['achievements_bool']:
-            # get all achievements
-            achievements: Response = s.get(urls['achievements'], headers=header)
-            achievements: dict = achievements.json()
-            # Loop over all achievements and claim them, if completed.
+    global header
+    if settings['achievements_bool']:
+        # get all achievements
+        achievements: Response = s.get(urls['achievements'], headers=header)
+        achievements: dict = achievements.json()
+        # Loop over all achievements and claim them, if completed.
+        try:
             for achievement in achievements['data']:
                 try:
                     if not achievement['is_claimed'] and achievement['progresses'][0]['current_progress'] == \
@@ -223,6 +207,54 @@ def main() -> None:
                                headers=header)
                         print(f'Claimed {achievement["title"]}.')
                         logging.info(f'Claimed {achievement["title"]}.')
+        except KeyError:
+            if 'message' in achievements:
+                token: str = gen_token(s, True)
+                if token is None:
+                    print("Closing HoneygainAutoClaim! Due to false login Credentials.")
+                    logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
+                    exit(-1)
+                # header for all further requests
+                header = {'Authorization': f'Bearer {token}'}
+            return False
+        return True
+
+
+def main() -> None:
+    """
+    Automatically claims the Lucky pot and prints out current stats.
+    """
+    global header
+    # starting a new session
+    with requests.session() as s:
+        token: str = gen_token(s)
+        if token is None:
+            print("Closing HoneygainAutoClaim! Due to false login Credentials.")
+            logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
+            exit(-1)
+        # header for all further requests
+        header = {'Authorization': f'Bearer {token}'}
+        if not achievments_claim(s):
+            logging.error('Failed to claim achievements.')
+            print('Failed to claim achievements.')
+        # check if the token is valid by trying to get the current balance with it
+        dashboard: Response = s.get(urls['balance'], headers=header)
+        dashboard: dict = dashboard.json()
+        if 'code' in dashboard and dashboard['code'] == 401:
+            print('Invalid token generating new one.')
+            logging.info('Invalid token generating new one.')
+            token: str = gen_token(s, True)
+            header['Authorization'] = f'Bearer {token}'
+        # gets the pot winning credits
+        pot_winning: Response = s.get(urls['pot'], headers=header)
+        pot_winning: dict = pot_winning.json()
+
+        if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
+            # The post below sends the request, so that the pot claim gets made
+            pot_claim: Response = s.post(urls['pot'], headers=header)
+            pot_claim: dict = pot_claim.json()
+            print(f'Claimed {pot_claim["data"]["credits"]} Credits.')
+            logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
 
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)

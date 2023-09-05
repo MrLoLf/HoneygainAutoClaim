@@ -24,12 +24,22 @@ to delete this bot I'll do it.
 ## <a id='usage'></a>Usage  
   
 ### Windows/Linux  
-- **Clone** or **download** this repository.  
-- Navigate in to the directory `HoneygainAutoClaim`  
+- **Clone** or **download** this repository.
+```commandline
+git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+```
+- Navigate in to the directory `HoneygainAutoClaim`
+```commandline
+cd HoneygainAutoClaim
+```
 - Install the **required** modules with  
 ```commandline  
 python3 -m pip install -r requirements.txt  
 ```  
+- If you run the cron job it's recommended to navigate back to your home directory with:
+```commandline
+cd ~
+```
 - Run the script with  
 ```commandline  
 python3 /absolut folder path/main.py  
@@ -38,13 +48,21 @@ python3 /absolut folder path/main.py
 - Enjoy your **daily bonus**!  
   
 ### Docker  
+- **Clone** or **download** this repository.
+```commandline
+git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+```
+- Navigate in to the directory `HoneygainAutoClaim`
+```commandline
+cd HoneygainAutoClaim
+```  
 - To build the Dockerfile run the command below:  
 ```commandline  
 docker build -t honeygainautoclaim .
 ```  
 - To run the docker container  
 ```commandline  
-docker run -it honeygainautoclaim  
+docker run -it --restart unless-stopped honeygainautoclaim  
 ```  
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
@@ -73,7 +91,8 @@ docker ps -a
 crontab -e  
 ```  
 or the windows equivalent via the Task Scheduler.  
-3. Add this line at the **bottom**   `0 8 * * * docker start <container_id>`. Make sure to replace <container_id> with the ID of your Docker container.  
+3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. Make sure to replace <container_id> with the ID of your Docker container.
+After adding the start command you have to stop the docker conatiner or it will run multiple times per minute.
   
   
 #### Windows  
