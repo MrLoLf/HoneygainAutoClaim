@@ -95,15 +95,23 @@ or the windows equivalent via the Task Scheduler.
 After adding the start command you have to stop the docker conatiner or it will run multiple times per minute.
   
   
-#### Windows  
-  
-1. Open the `Task Scheduler`  
-2. Create a new **basic Task**  
-3. Give the task a **name**  
-4. Choose a **daily trigger**  
-5. Select the **time**, when to run it  
-6. Select as action to **start a program**  
-7. Select the path to the **main.py**  
+#### Windows
+
+1. Open Task Scheduler.
+2. Click on Create Task.
+3. Enter task name: “HoneygainAutoClaim”.
+4. Switch to Triggers tab.
+5. Click on New.
+6. Select On a schedule.
+7. Set start date to today, time to 8:00 AM.
+8. Select Daily in Settings.
+9. Click on OK.
+10. Switch to Actions tab.
+11. Click on New.
+12. Select Start a program.
+13. Enter path to Python executable e.g. C:\Python39\python.exe.
+14. Enter path to C:\HoneygainAutoClaim\main.py script in Add arguments.
+15. Click on OK.
   
 ## <a id='config'></a>Config  
   
