@@ -110,7 +110,7 @@ After adding the start command you have to stop the docker conatiner or it will 
 11. Click on New.
 12. Select Start a program.
 13. Enter path to Python executable e.g. C:\Python39\python.exe.
-14. Enter path to C:\HoneygainAutoClaim\main.py script in Add arguments.
+14. Enter path to e.g. C:\HoneygainAutoClaim\main.py script in Add arguments.
 15. Click on OK.
   
 ## <a id='config'></a>Config  
