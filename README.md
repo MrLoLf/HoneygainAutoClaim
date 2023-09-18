@@ -18,7 +18,7 @@ to delete this bot I'll do it.
 - [Config changes](#config)  
   
 ## Requirements  
-- [Python 3](https://www.python.org/downloads/)  
+- [Python 3.10 or higher](https://www.python.org/downloads/)  
   
   
 ## <a id='usage'></a>Usage  
