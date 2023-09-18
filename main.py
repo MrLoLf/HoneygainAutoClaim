@@ -14,7 +14,7 @@ config_folder: str = 'Config'
 token_file: str = config_folder + '/HoneygainToken.json'
 config_path: str = config_folder + '/HoneygainConfig.toml'
 
-header: dict[str | str] = {'Authorization': ''}
+header: dict[str, str] = {'Authorization': ''}
 
 # Creates a Log
 if not os.path.exists('Logs'):
@@ -56,46 +56,46 @@ def create_config() -> None:
         cfg.write(configfile)
 
 
-def get_urls(cfg: ConfigParser) -> dict[str | str]:
+def get_urls(cfg: ConfigParser) -> dict[str, str]:
     """
     :param cfg: config object that contains the config
     :return: a dictionary with all urls of the config
     """
-    urls_conf: dict[str | str] = {}
+    urls_conf: dict[str, str] = {}
     try:
-        urls_conf: dict[str | str] = {'login': cfg.get('Url', 'login'),
-                                      'pot': cfg.get('Url', 'pot'),
-                                      'balance': cfg.get('Url', 'balance'),
-                                      'achievements': cfg.get('Url', 'achievements'),
-                                      'achievement_claim': cfg.get('Url', 'achievement_claim')}
+        urls_conf: dict[str, str] = {'login': cfg.get('Url', 'login'),
+                                     'pot': cfg.get('Url', 'pot'),
+                                     'balance': cfg.get('Url', 'balance'),
+                                     'achievements': cfg.get('Url', 'achievements'),
+                                     'achievement_claim': cfg.get('Url', 'achievement_claim')}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return urls_conf
 
 
-def get_login(cfg: ConfigParser) -> dict[str | str]:
+def get_login(cfg: ConfigParser) -> dict[str, str]:
     """
         :param cfg: config object that contains the config
         :return: a dictionary with all user information of the config
         """
-    user: dict[str | str] = {}
+    user: dict[str, str] = {}
     try:
-        user: dict[str | str] = {'email': cfg.get('User', 'email'),
-                                 'password': cfg.get('User', 'password')}
+        user: dict[str, str] = {'email': cfg.get('User', 'email'),
+                                'password': cfg.get('User', 'password')}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return user
 
 
-def get_settings(cfg: ConfigParser) -> dict[str | bool]:
+def get_settings(cfg: ConfigParser) -> dict[str, bool]:
     """
         :param cfg: config object that contains the config
         :return: a dictionary with all settings of the config
         """
-    settings_dict: dict[str | bool] = {}
+    settings_dict: dict[str, bool] = {}
     try:
-        settings_dict: dict[str | bool] = {'lucky_pot': cfg.getboolean('Settings', 'Lucky Pot'),
-                                           'achievements_bool': cfg.getboolean('Settings', 'Achievements')}
+        settings_dict: dict[str, bool] = {'lucky_pot': cfg.getboolean('Settings', 'Lucky Pot'),
+                                          'achievements_bool': cfg.getboolean('Settings', 'Achievements')}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return settings_dict
@@ -117,19 +117,22 @@ if not config.has_section('User') or not config.has_section('Settings') or not c
 
 try:
     # settings
-    settings: dict[str | str] = get_settings(config)
+    settings: dict[str, bool] = get_settings(config)
     # urls
-    urls: dict[str | str] = get_urls(config)
+    urls: dict[str, str] = get_urls(config)
     # user credentials
-    payload: dict[str | str] = get_login(config)
+    payload: dict[str, str] = get_login(config)
 except configparser.NoOptionError or configparser.NoSectionError:
+    """
+    creating a new config if the there were some changes in the config file
+    """
     create_config()
     # settings
-    settings: dict[str | str] = get_settings(config)
+    settings: dict[str, bool] = get_settings(config)
     # urls
-    urls: dict[str | str] = get_urls(config)
+    urls: dict[str, str] = get_urls(config)
     # user credentials
-    payload: dict[str | str] = get_login(config)
+    payload: dict[str, str] = get_login(config)
 
 
 def login(s: requests.session) -> json.loads:
@@ -182,7 +185,7 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     return token["data"]["access_token"]
 
 
-def achievments_claim(s: requests.session) -> bool:
+def achievements_claim(s: requests.session) -> bool:
     """
     function to claim achievements
     """
@@ -234,7 +237,7 @@ def main() -> None:
             exit(-1)
         # header for all further requests
         header = {'Authorization': f'Bearer {token}'}
-        if not achievments_claim(s):
+        if not achievements_claim(s):
             logging.error('Failed to claim achievements.')
             print('Failed to claim achievements.')
         # check if the token is valid by trying to get the current balance with it
