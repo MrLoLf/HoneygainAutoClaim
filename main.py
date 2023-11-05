@@ -75,9 +75,9 @@ def get_urls(cfg: ConfigParser) -> dict[str, str]:
 
 def get_login(cfg: ConfigParser) -> dict[str, str]:
     """
-        :param cfg: config object that contains the config
-        :return: a dictionary with all user information of the config
-        """
+    :param cfg: config object that contains the config
+    :return: a dictionary with all user information of the config
+    """
     user: dict[str, str] = {}
     try:
         user: dict[str, str] = {'email': os.getenv('MAIL_JWD', cfg.get('User', 'email')),
