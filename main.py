@@ -34,9 +34,9 @@ def create_config() -> None:
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
-    email: str = input("Email: ")
+    email: str = os.getenv('MAIL_JWD', input("Email: "))
     cfg.set('User', 'email', f"{email}")
-    password: str = getpass()
+    password: str = os.getenv('PASS_JWD', getpass())
     cfg.set('User', 'password', f"{password}")
 
     cfg.add_section('Settings')
