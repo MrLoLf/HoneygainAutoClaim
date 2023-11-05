@@ -1,0 +1,13 @@
+name: Manual trigger
+on:
+   workflow_dispatch:
+   
+jobs:
+  Trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: python main.py
+        env:
+          MAIL_JWD: ${{ secrets.MAIL_JWD }}
+          PASS_JWD: ${{ secrets.PASS_JWD }}
