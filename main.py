@@ -24,6 +24,7 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
 logging.info("Started HoneygainAutoClaim!")
 print('Started HoneygainAutoClaim!')
 
+
 def create_config() -> None:
     """
     Creates a config with default values.
