@@ -83,12 +83,8 @@ def get_login(cfg: ConfigParser) -> dict[str, str]:
         """
     user: dict[str, str] = {}
     try:
-        if os.getenv('IsGit') == '1':
-            user: dict[str, str] = {'email': os.getenv('MAIL_JWD', cfg.get('User', 'email')),
-                                    'password': os.getenv('PASS_JWD', cfg.get('User', 'password'))}
-        else:
-            user: dict[str, str] = {'email': input("Enter your email: "),
-                                    'password': getpass("Enter your password: ")}
+        user: dict[str, str] = {'email': cfg.get('User', 'email'),
+                                'password': cfg.get('User', 'password')}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return user
