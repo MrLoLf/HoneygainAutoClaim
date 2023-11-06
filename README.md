@@ -46,7 +46,43 @@ python3 /absolut folder path/main.py
 ```  
 - [Create a schedule](#schedule-linux) to run the program every day.  
 - Enjoy your **daily bonus**!  
-  
+
+### GitHub Actions  
+### Benefits
+- Run w/o PC,VPS,On the fly
+- Keep your email and password safe with env secret from GitHub
+- Automatically run everyday
+
+### Usage
+
+  1. [Fork this repository](https://github.com/MrLoLf/HoneygainAutoClaim/fork)  
+  2. Go to your forked repository
+  3. Go to Settings > Secrets and Variables > Actions. And click the button `New Repository secret`
+  4. For the secret name, use `MAIL_JWD` to set your honeygain mail and `PASS_JWD` for your password
+  5. Go to your forked repository and go to the Actions tab and press the button `I understand my workflows, go ahead and enable them`
+
+![GitSettings](https://github.com/gorouflex/HoneygainPot/assets/98001973/d8d33621-5717-488d-9a80-6db395c8ac9d)
+
+### How to change the schedule to fit with my timezone before the pot is reset?
+
+- Well, GitHub uses UTC time (UTC +0) for scheduling workflows, so we should convert it to our timezone.
+
+- For example: If I want to set the daily trigger to trigger at 9:00 PM (UTC +7), I have to set it to 2:00 PM or 14:00 (24-hour format) (UTC±0) (2+7=9).
+
+```
+name: Daily claim
+on:
+  schedule:
+    - cron: '0 14 * * *' # <- UTC Time, replace 0 14
+```
+- So, if I want the daily trigger to run at 5:00 AM (UTC +7), I have to set it to 10:00 PM (UTC±0) (use 24-hour format):
+```
+name: Daily claim
+on:
+  schedule:
+    - cron: '0 22 * * *' # UTC Time
+```
+
 ### Docker  
 - **Clone** or **download** this repository.
 ```commandline
@@ -67,7 +103,6 @@ docker run -it --restart unless-stopped honeygainautoclaim
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
-   
 ### <a id='create-a-schedule'></a>Create a schedule  
   
 #### <a id='schedule-linux'></a>Linux  
