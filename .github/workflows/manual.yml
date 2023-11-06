@@ -14,4 +14,4 @@ jobs:
         env:
           MAIL_JWD: ${{ secrets.MAIL_JWD }}
           PASS_JWD: ${{ secrets.PASS_JWD }}
-          IsGit: 0
+          IsGit: 1
