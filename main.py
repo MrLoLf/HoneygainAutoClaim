@@ -34,13 +34,9 @@ def create_config() -> None:
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
-    email: str = os.getenv('MAIL_JWD')
-    if email is None:
-        raise ValueError("Env variable 'MAIL_JWD' is not set")
+    email: str = input("Email: ")
     cfg.set('User', 'email', f"{email}")
-    password: str = os.getenv('PASS_JWD')
-    if password is None:
-        raise ValueError("Env variable 'PASS_JWD' is not set")
+    password: str = getpass()
     cfg.set('User', 'password', f"{password}")
 
     cfg.add_section('Settings')
@@ -84,8 +80,12 @@ def get_login(cfg: ConfigParser) -> dict[str, str]:
     """
     user: dict[str, str] = {}
     try:
-        user: dict[str, str] = {'email': os.getenv('MAIL_JWD', cfg.get('User', 'email')),
-                                'password': os.getenv('PASS_JWD', cfg.get('User', 'password'))}
+        if os.getenv('IsGit') == '1':
+            user: dict[str, str] = {'email': os.getenv('MAIL_JWD', cfg.get('User', 'email')),
+                                    'password': os.getenv('PASS_JWD', cfg.get('User', 'password'))}
+        else:
+            user: dict[str, str] = {'email': input("Enter your email: "),
+                                    'password': getpass("Enter your password: ")}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return user
