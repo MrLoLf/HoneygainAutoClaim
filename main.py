@@ -24,7 +24,6 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
 logging.info("Started HoneygainAutoClaim!")
 print('Started HoneygainAutoClaim!')
 
-
 def create_config() -> None:
     """
     Creates a config with default values.
@@ -34,9 +33,13 @@ def create_config() -> None:
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
-    email: str = input("Email: ")
+    if os.getenv('IsGit') == '1':
+        email: str = os.getenv('MAIL_JWD')
+        password: str = os.getenv('PASS_JWD')
+    else:
+        email: str = input("Email: ")
+        password: str = getpass()
     cfg.set('User', 'email', f"{email}")
-    password: str = getpass()
     cfg.set('User', 'password', f"{password}")
 
     cfg.add_section('Settings')
