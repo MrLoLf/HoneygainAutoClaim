@@ -23,7 +23,7 @@ ___
 ## List of Content  
   
 - [Installation/Usage](#usage)  
-- [Creating a schedule](#-create-a-schedule)  
+- [Creating a schedule](#create-a-schedule)  
 - [Config changes](#config)  
   
 ## Requirements
