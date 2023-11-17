@@ -1,15 +1,17 @@
 # HoneygainAutoClaim  
 [![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)  
   
-HoneygainAutoClaim is a simple [Python](https://www.python.org/) script that **automatically claims your daily bonus**  
+HoneygainAutoClaim is a [Python](https://www.python.org/) script that **automatically claims your daily bonus**  
 and **achievements** from [Honeygain](https://r.honeygain.me/ROSCH76C7D). Honeygain is a  
 service that allows you to earn **passive income** by **sharing** your **internet** connection with others.  
   
 ## Disclaimer  
 This script is **not** affiliated with or endorsed by Honeygain. Use it at your **own risk** and responsibility.  
 The **author** is **not responsible** for any consequences that may arise from using this script. If Honeygain wants me 
-to delete this bot I'll do it.  
+to delete this bot I'll do it.
 
+## License
+This project is licensed under the MIT License. For more information, see the LICENSE file.
  
 ## List of Content  
   
@@ -18,42 +20,43 @@ to delete this bot I'll do it.
 - [Config changes](#config)  
   
 ## Requirements  
-- [Python 3.10 or higher](https://www.python.org/downloads/)  
+- [Python 3.10 or higher](https://www.python.org/downloads/)
+- [Honeygain account](https://r.honeygain.me/ROSCH76C7D)
   
   
 ## <a id='usage'></a>Usage  
   
 ### Windows/Linux  
 - **Clone** or **download** this repository.
-```commandline
-git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
-```
+  ```commandline
+  git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+  ```
 - Navigate in to the directory `HoneygainAutoClaim`
-```commandline
-cd HoneygainAutoClaim
-```
+  ```commandline
+  cd HoneygainAutoClaim
+  ```
 - Install the **required** modules with  
-```commandline  
-python3 -m pip install -r requirements.txt  
-```  
+  ```commandline  
+  python3 -m pip install -r requirements.txt  
+  ```  
 - If you run the cron job it's recommended to navigate back to your home directory with:
-```commandline
-cd ~
-```
+  ```commandline
+  cd ~
+  ```
 - Run the script with  
-```commandline  
-python3 /absolut folder path/main.py  
-```  
+  ```commandline  
+  python3 /absolut folder path/main.py  
+  ```  
 - [Create a schedule](#schedule-linux) to run the program every day.  
 - Enjoy your **daily bonus**!  
 
 ### GitHub Actions  
-### Benefits
-- Run w/o PC,VPS,On the fly
+#### Benefits
+- Run w/o PC, VPS, On the fly
 - Keep your email and password safe with env secret from GitHub
 - Automatically run everyday
 
-### Usage
+#### Usage
 
   1. [Fork this repository](https://github.com/MrLoLf/HoneygainAutoClaim/fork)  
   2. Go to your forked repository
@@ -63,43 +66,43 @@ python3 /absolut folder path/main.py
 
 ![GitSettings](https://github.com/gorouflex/HoneygainPot/assets/98001973/d8d33621-5717-488d-9a80-6db395c8ac9d)
 
-### How to change the schedule to fit with my timezone before the pot is reset?
+#### How to change the schedule to fit with my timezone before the pot is reset?
 
 - Well, GitHub uses UTC time (UTC +0) for scheduling workflows, so we should convert it to our timezone.
 
 - For example: If I want to set the daily trigger to trigger at 9:00 PM (UTC +7), I have to set it to 2:00 PM or 14:00 (24-hour format) (UTC±0) (2+7=9).
 
-```
-name: Daily claim
-on:
-  schedule:
-    - cron: '0 14 * * *' # <- UTC Time, replace 0 14
-```
+  ```
+  name: Daily claim
+  on:
+    schedule:
+      - cron: '0 14 * * *' # <- UTC Time, replace 0 14
+  ```
 - So, if I want the daily trigger to run at 5:00 AM (UTC +7), I have to set it to 10:00 PM (UTC±0) (use 24-hour format):
-```
-name: Daily claim
-on:
-  schedule:
-    - cron: '0 22 * * *' # UTC Time
-```
+  ```
+  name: Daily claim
+  on:
+    schedule:
+      - cron: '0 22 * * *' # UTC Time
+  ```
 
 ### Docker  
 - **Clone** or **download** this repository.
-```commandline
-git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
-```
+  ```commandline
+  git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
+  ```
 - Navigate in to the directory `HoneygainAutoClaim`
-```commandline
-cd HoneygainAutoClaim
-```  
+  ```commandline
+  cd HoneygainAutoClaim
+  ```  
 - To build the Dockerfile run the command below:  
-```commandline  
-docker build -t honeygainautoclaim .
-```  
+  ```commandline  
+  docker build -t honeygainautoclaim .
+  ```  
 - To run the docker container  
-```commandline  
-docker run -it --restart unless-stopped honeygainautoclaim  
-```  
+  ```commandline  
+  docker run -it --restart unless-stopped honeygainautoclaim  
+  ```  
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
@@ -107,10 +110,9 @@ docker run -it --restart unless-stopped honeygainautoclaim
   
 #### <a id='schedule-linux'></a>Linux  
   
-1.  
-```commandline  
-crontab -e  
-```  
+1. ```commandline
+   crontab -e  
+   ```  
 2. Add this line at the **bottom** `0 8 * * * python3 /absolut folder path/main.py` to run the script every day at 8:00 am.  
   
 #### <a id='schedule-docker'></a>Docker 
@@ -118,16 +120,16 @@ crontab -e
 
   
 1. You can find the docker container ID by running  
-``` commandline  
-docker ps -a  
-```  
-2.  
-```commandline  
-crontab -e  
-```  
-or the windows equivalent via the Task Scheduler.  
-3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. Make sure to replace <container_id> with the ID of your Docker container.
-After adding the start command you have to stop the docker conatiner or it will run multiple times per minute.
+    ```commandline  
+    docker ps -a  
+    ```
+2. ```commandline  
+   crontab -e  
+   ```  
+   or the windows equivalent via the Task Scheduler.  
+3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. 
+   Make sure to replace <container_id> with the ID of your Docker container.
+   After adding the start command you have to stop the docker container, or it will run multiple times per minute.
   
   
 #### Windows
@@ -158,7 +160,6 @@ After adding the start command you have to stop the docker conatiner or it will 
   
 ### Linux  
   
--
-```commandline  
-nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml  
-```
+- ```commandline
+  nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml
+  ```
