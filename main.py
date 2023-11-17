@@ -39,6 +39,7 @@ def create_config() -> None:
         password: str = os.getenv('PASS_JWD')
     else:
         email: str = input("Email: ")
+        print("Password: ")
         password: str = getpass()
     cfg.set('User', 'email', f"{email}")
     cfg.set('User', 'password', f"{password}")
@@ -148,6 +149,7 @@ def login(s: requests.session) -> json.loads:
     logging.warning('Logging in to Honeygain!')
     print('Logging in to Honeygain!')
     token: Response = s.post(urls['login'], json=payload)
+
     try:
         return json.loads(token.text)
     except json.decoder.JSONDecodeError:
@@ -167,13 +169,16 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
         logging.warning('Generating new Token!')
         print('Generating new Token!')
+
         # generating new token if the file is empty or is invalid
         with open(token_file, 'w') as f:
             # remove what ever was in the file and jump to the beginning
             f.truncate(0)
             f.seek(0)
+
             # get json and write it to the file
             token: dict = login(s)
+
             # check if token is valid and doesn't have false credentials in it.
             if "title" in token:
                 print("Wrong Login Credentials. Please enter the right ones.")
@@ -193,11 +198,14 @@ def achievements_claim(s: requests.session) -> bool:
     """
     function to claim achievements
     """
+    # to use the same header as defined earlier
     global header
     if settings['achievements_bool']:
+
         # get all achievements
         achievements: Response = s.get(urls['achievements'], headers=header)
         achievements: dict = achievements.json()
+
         # Loop over all achievements and claim them, if completed.
         try:
             for achievement in achievements['data']:
@@ -217,10 +225,12 @@ def achievements_claim(s: requests.session) -> bool:
         except KeyError:
             if 'message' in achievements:
                 token: str = gen_token(s, True)
+
                 if token is None:
                     print("Closing HoneygainAutoClaim! Due to false login Credentials.")
                     logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
                     exit(-1)
+
                 # header for all further requests
                 header = {'Authorization': f'Bearer {token}'}
             return False
@@ -235,15 +245,19 @@ def main() -> None:
     # starting a new session
     with requests.session() as s:
         token: str = gen_token(s)
+
         if token is None:
             print("Closing HoneygainAutoClaim! Due to false login Credentials.")
             logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
             exit(-1)
+
         # header for all further requests
         header = {'Authorization': f'Bearer {token}'}
+
         if not achievements_claim(s):
             logging.error('Failed to claim achievements.')
             print('Failed to claim achievements.')
+
         # check if the token is valid by trying to get the current balance with it
         dashboard: Response = s.get(urls['balance'], headers=header)
         dashboard: dict = dashboard.json()
@@ -252,6 +266,7 @@ def main() -> None:
             logging.info('Invalid token generating new one.')
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
+
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
@@ -268,6 +283,7 @@ def main() -> None:
         pot_winning: dict = pot_winning.json()
         print(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
         logging.info(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
+
         # gets the current balance
         balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
