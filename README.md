@@ -11,7 +11,7 @@ others.
   
 This script is **not** affiliated with or endorsed by Honeygain. Use it at your **own risk** and responsibility.  
 The **author** is **not responsible** for any consequences that may arise from using this script. If Honeygain wants me 
-to delete this bot I'll do it.
+to delete this bot, I'll do it.
   
 ## License  
 
@@ -48,7 +48,7 @@ ___
   ```commandline  
   python3 -m pip install -r requirements.txt  
   ```  
-- If you run the cron job it's recommended to navigate back to your home directory with:
+- If you run the cron job, it's recommended to navigate back to your home directory with:
   ```commandline
   cd ~
   ```
@@ -91,7 +91,7 @@ and enable them`
   ```commandline
   cd HoneygainAutoClaim
   ```  
-- To build the Dockerfile run the command below:  
+- To build the Dockerfile, run the command below:  
   ```commandline  
   docker build -t honeygainautoclaim .
   ```  
@@ -145,10 +145,10 @@ am.
 2. ```commandline  
    crontab -e  
    ```  
-   or the windows equivalent via the Task Scheduler.  
+   Or the windows equivalent via the Task Scheduler.  
 3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. 
    Make sure to replace <container_id> with the ID of your Docker container.
-   After adding the start command you have to stop the docker container, or it will run multiple times per minute.
+   After adding the start command, you have to stop the docker container, or it will run multiple times per minute.
   
   
 #### 🪟 Windows  
@@ -165,8 +165,8 @@ am.
 10. Switch to Actions tab.
 11. Click on New.
 12. Select Start a program.
-13. Enter path to Python executable e.g. C:\Python39\python.exe.
-14. Enter path to e.g. C:\HoneygainAutoClaim\main.py script in Add arguments.
+13. Enter path to Python executable, e.g. C:\Python39\python.exe.
+14. Enter path to, e.g. C:\HoneygainAutoClaim\main.py script in Add arguments.
 15. Click on OK.
   
 ## <a name='config'></a>Config  
