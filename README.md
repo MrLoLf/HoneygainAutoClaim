@@ -155,7 +155,7 @@ am.
 
 1. Open Task Scheduler.
 2. Click on Create Task.
-3. Enter task name: “HoneygainAutoClaim”.
+3. Enter task name: `HoneygainAutoClaim`.
 4. Switch to Triggers tab.
 5. Click on New.
 6. Select On a schedule.
@@ -165,8 +165,8 @@ am.
 10. Switch to Actions tab.
 11. Click on New.
 12. Select Start a program.
-13. Enter path to Python executable, e.g. C:\Python39\python.exe.
-14. Enter path to, e.g. C:\HoneygainAutoClaim\main.py script in Add arguments.
+13. Enter path to Python executable, e.g. `C:\Python39\python.exe`.
+14. Enter path to, e.g. `C:\HoneygainAutoClaim\main.py` script to `Add arguments`.
 15. Click on OK.
   
 ## <a name='config'></a>Config  
