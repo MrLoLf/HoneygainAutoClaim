@@ -75,7 +75,7 @@ ___
 4. For the secret name, use `MAIL_JWD` to set your honeygain mail and `PASS_JWD` for your password
 5. Go to your forked repository and go to the Actions tab and press the button `I understand my workflows, go ahead 
 and enable them`
-6. schedule it correctly as described in [GitHub actions](#github-actions)
+6. Schedule it correctly as described in [GitHub actions](#github-actions)
 
 ![GitSettings](https://github.com/gorouflex/HoneygainPot/assets/98001973/d8d33621-5717-488d-9a80-6db395c8ac9d)
 
