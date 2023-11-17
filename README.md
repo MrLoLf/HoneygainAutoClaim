@@ -22,9 +22,9 @@ ___
 
 ## List of Content  
   
-- [Installation/Usage](#usage-)  
-- [Creating a schedule](#a-namecreate-a-schedulea--create-a-schedule)  
-- [Config changes](#a-nameconfigaconfig-)  
+- [Installation/Usage](#usage)  
+- [Creating a schedule](#-create-a-schedule)  
+- [Config changes](#config)  
   
 ## Requirements
 
@@ -56,7 +56,7 @@ ___
   ```commandline  
   python3 /absolut folder path/main.py  
   ```  
-- [Create a schedule](#a-nameschedule-linuxa--linux-) to run the program every day.  
+- [Create a schedule](#schedule-linux) to run the program every day.  
 - Enjoy your **daily bonus**!  
 
 ### 🐙 GitHub Actions  
@@ -75,7 +75,7 @@ ___
 4. For the secret name, use `MAIL_JWD` to set your honeygain mail and `PASS_JWD` for your password
 5. Go to your forked repository and go to the Actions tab and press the button `I understand my workflows, go ahead 
 and enable them`
-6. schedule it correctly as described in [GitHub actions](#-github-actions-)
+6. schedule it correctly as described in [GitHub actions](#github-actions)
 
 ![GitSettings](https://github.com/gorouflex/HoneygainPot/assets/98001973/d8d33621-5717-488d-9a80-6db395c8ac9d)
 
@@ -99,7 +99,7 @@ and enable them`
   ```commandline  
   docker run -it --restart unless-stopped honeygainautoclaim  
   ```  
-- [Create a schedule](#a-nameschedule-dockera--docker-) to run the program every day.  
+- [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
 ### <a name='create-a-schedule'></a> 🕑 Create a schedule
