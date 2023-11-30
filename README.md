@@ -69,7 +69,7 @@ ___
 
 #### Usage  
 
-1. [Fork this repository](https://github.com/MrLoLf/HoneygainAutoClaim/fork) but make it **private**, so no one can see your commits, when entering your password.
+1. [Fork this repository](https://github.com/MrLoLf/HoneygainAutoClaim/fork) but make it **private**, so no one can see your commits, when you change something.
 2. Go to your forked repository
 3. Go to Settings > Secrets and Variables > Actions. And click the button `New Repository secret`
 4. For the secret name, use `MAIL_JWD` to set your honeygain mail and `PASS_JWD` for your password
