@@ -2,7 +2,7 @@
 
 [![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)  
   
-HoneygainAutoClaim is a 🐍 [Python](https://www.python.org/) script that **automatically claims your daily bonus** and **achievements** 
+HoneygainAutoClaim is a 🐍 [Python](https://www.python.org/) script (bot) that **automatically claims your daily bonus** and **achievements** 
 from 🐝 [Honeygain](https://r.honeygain.me/ROSCH76C7D) 🍯.  
 Honeygain is a service that allows you to 💵 earn **passive income** by **sharing** your **internet** connection with 
 others.  
