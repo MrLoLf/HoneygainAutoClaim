@@ -1,19 +1,19 @@
 name: Daily claim
 on:
   schedule:
-    - cron: '0 14 * * *' # UTC Time
+    - cron: '0 14 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes) and use 24-hour format
 
 jobs:
-  Trigger:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-      - run: python main.py
-        env:
-          MAIL_JWD: ${{ secrets.MAIL_JWD }}
-          PASS_JWD: ${{ secrets.PASS_JWD }}
-          IsGit: 1
+    Daily:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3        
+          - name: Run HoneygainPot
+            run: python main.py
+            env:
+              MAIL: ${{ secrets.MAIL }}
+              PASS: ${{ secrets.PASS }}
+              JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
+              IsGit: 1
+              IsJWT: 1 # <- 0 = Use Mail and Pass ; 1 = Use Token (Default is 1)
     
