@@ -64,7 +64,7 @@ ___
 #### Benefits  
 
 - Run w/o PC, VPS, On the fly
-- Keep your email and password safe with env secret from GitHub
+- Keep your email, password or your token safe with env secret from GitHub
 - Automatically run everyday
 
 ### Use JWT Token
@@ -72,7 +72,7 @@ ___
   1. Go to your Honeygain Dashboard or click [here](https://dashboard.honeygain.com/) and login your Honeygain account
   2. Open the browser's console by pressing `F12` button ( or `Fn+F12` on some laptop )
   3. Click on tab `Application` than click to `Local storage` and click to `https://dashboard.honeygain.com` then you will see key `JWT` that include your token, copy this for next steps
-  4. [Fork this repository 🍴](https://github.com/gorouflex/HoneygainPot/fork)
+  4. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   5. Go to your forked repository 🍴
   6. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
   7. Use `JWT_TOKEN` and paste your JWT Token from Steps 3
@@ -87,7 +87,7 @@ ___
 
 ### Use Mail and Password
 
-  1. [Fork this repository 🍴](https://github.com/gorouflex/HoneygainPot/fork)
+  1. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   2. Go to your forked repository 🍴
   3. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
   4. For the secret name, use `MAIL` and set your honeygain mail and `PASS` for your password
