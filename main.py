@@ -16,6 +16,14 @@ config_path: str = config_folder + '/HoneygainConfig.toml'
 
 header: dict[str, str] = {'Authorization': ''}
 
+config: ConfigParser = ConfigParser()
+config.read(config_path)
+
+is_jwt = config.get('User', 'IsJWT', fallback='0')
+
+if is_jwt == '1':
+    os.environ['IsJWT'] = '1'
+    
 # Creates a Log
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
@@ -35,14 +43,31 @@ def create_config() -> None:
 
     cfg.add_section('User')
     if os.getenv('IsGit') == '1':
-        email: str = os.getenv('MAIL_JWD')
-        password: str = os.getenv('PASS_JWD')
+        if os.getenv('IsJWT') == '1':
+            token = os.getenv('JWT_TOKEN')
+            cfg.set('User', 'token', f"{token}")
+        else:
+            email = os.getenv('MAIL')
+            password = os.getenv('PASS')
+            cfg.set('User', 'email', f"{email}")
+            cfg.set('User', 'password', f"{password}")
     else:
-        email: str = input("Email: ")
-        print("Password: ")
-        password: str = getpass()
-    cfg.set('User', 'email', f"{email}")
-    cfg.set('User', 'password', f"{password}")
+        print("Please choose authentication method:")
+        print("1. Using Token")
+        print("2. Using Email and Password")
+
+        choice = input("Enter your choice (1 or 2): ")
+        if choice == '1':
+            token = input("Token: ")
+            cfg.set('User', 'token', f"{token}")
+            cfg.set('User', 'IsJWT', '1') 
+            os.environ['IsJWT'] = '1'
+        elif choice == '2':
+            email = input("Email: ")
+            password = getpass("Password: ")
+            cfg.set('User', 'email', f"{email}")
+            cfg.set('User', 'password', f"{password}")
+            cfg.set('User', 'IsJWT', '0') 
 
     cfg.add_section('Settings')
     cfg.set('Settings', 'Lucky Pot', 'True')
@@ -85,8 +110,12 @@ def get_login(cfg: ConfigParser) -> dict[str, str]:
         """
     user: dict[str, str] = {}
     try:
-        user: dict[str, str] = {'email': cfg.get('User', 'email'),
-                                'password': cfg.get('User', 'password')}
+        if os.getenv('IsJWT') == '1':
+            token = cfg.get('User', 'token')
+            user: dict[str, str] = {'token': token}
+        else:
+            user: dict[str, str] = {'email': cfg.get('User', 'email'),
+                                    'password': cfg.get('User', 'password')}
     except configparser.NoOptionError or configparser.NoSectionError:
         create_config()
     return user
@@ -148,14 +177,17 @@ def login(s: requests.session) -> json.loads:
     """
     logging.warning('Logging in to Honeygain!')
     print('Logging in to Honeygain!')
-    token: Response = s.post(urls['login'], json=payload)
-
-    try:
-        return json.loads(token.text)
-    except json.decoder.JSONDecodeError:
-        logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
-        print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
-        exit(-1)
+    if os.getenv('IsJWT') == '1':
+        token = payload['token']
+        return {'data': {'access_token': token}}
+    else:
+        token: Response = s.post(urls['login'], json=payload)
+        try:
+            return json.loads(token.text)
+        except json.decoder.JSONDecodeError:
+               logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
+               print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
+               exit(-1)
 
 
 def gen_token(s: requests.session, invalid: bool = False) -> str | None:
