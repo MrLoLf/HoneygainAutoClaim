@@ -32,6 +32,23 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
 logging.info("Started HoneygainAutoClaim!")
 print('Started HoneygainAutoClaim!')
 
+if os.getenv('GITHUB_ACTIONS') == 'true':
+    user_repo = os.getenv('GITHUB_REPOSITORY')
+    original_repo = 'MrLoLf/HoneygainAutoClaim'
+    user_url = f'https://api.github.com/repos/{user_repo}/commits/main'
+    original_url = f'https://api.github.com/repos/{original_repo}/commits/main'
+    user_response = requests.get(user_url)
+    original_response = requests.get(original_url)
+    if user_response.status_code == 200 and original_response.status_code == 200:
+        user_commit = user_response.json()['sha']
+        original_commit = original_response.json()['sha']
+        if user_commit == original_commit:
+            print('Your repo is up-to-date with the original repo')
+        else:
+            print('Your repo is not up-to-date with the original repo')
+            print('Please update your repo to the latest commit to get new updates and bug fixes')
+    else:
+        print('Failed to fetch commit information')
 
 def create_config() -> None:
     """
@@ -42,7 +59,7 @@ def create_config() -> None:
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
-    if os.getenv('IsGit') == '1':
+    if os.getenv('GITHUB_ACTIONS') == 'true':
         if os.getenv('IsJWT') == '1':
             token = os.getenv('JWT_TOKEN')
             cfg.set('User', 'token', f"{token}")
