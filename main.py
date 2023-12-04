@@ -11,8 +11,8 @@ from requests import Response
 
 # path to the token file
 config_folder: str = 'Config'
-token_file: str = config_folder + '/HoneygainToken.json'
-config_path: str = config_folder + '/HoneygainConfig.toml'
+token_file: str = f'{config_folder}/HoneygainToken.json'
+config_path: str = f'{config_folder}/HoneygainConfig.toml'
 
 header: dict[str, str] = {'Authorization': ''}
 
@@ -23,7 +23,7 @@ is_jwt = config.get('User', 'IsJWT', fallback='0')
 
 if is_jwt == '1':
     os.environ['IsJWT'] = '1'
-    
+
 # Creates a Log
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
@@ -195,16 +195,14 @@ def login(s: requests.session) -> json.loads:
     logging.warning('Logging in to Honeygain!')
     print('Logging in to Honeygain!')
     if os.getenv('IsJWT') == '1':
-        token = payload['token']
-        return {'data': {'access_token': token}}
-    else:
-        token: Response = s.post(urls['login'], json=payload)
-        try:
-            return json.loads(token.text)
-        except json.decoder.JSONDecodeError:
-               logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
-               print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
-               exit(-1)
+        return {'data': {'access_token': payload['token']}}
+    token: Response = s.post(urls['login'], json=payload)
+    try:
+        return json.loads(token.text)
+    except json.decoder.JSONDecodeError:
+           logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
+           print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
+           exit(-1)
 
 
 def gen_token(s: requests.session, invalid: bool = False) -> str | None:
