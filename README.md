@@ -67,11 +67,12 @@ ___
 - Keep your email, password or your token safe with env secret from GitHub
 - Automatically run everyday
 
+### Usage 
 ### Use JWT Token
 
-  1. Go to your Honeygain Dashboard or click [here](https://dashboard.honeygain.com/) and login your Honeygain account
-  2. Open the browser's console by pressing `F12` button ( or `Fn+F12` on some laptop )
-  3. Click on tab `Application` than click to `Local storage` and click to `https://dashboard.honeygain.com` then you will see key `JWT` that include your token, copy this for next steps
+  1. Go to your Honeygain Dashboard or click [here](https://dashboard.honeygain.com/) and log in to your Honeygain account
+  2. Open the browser's console by pressing `F12` button ( or `Fn+F12` on some laptops )
+  3. Click on the tab `Application` than click to `Local storage` and click to `https://dashboard.honeygain.com`; then you will see key `JWT` that includes your token, copy this for next steps
   4. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   5. Go to your forked repository 🍴
   6. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
@@ -79,10 +80,10 @@ ___
   8. Go to [`.github/workflows/daily.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/daily.yml) and [`.github/workflows/manual.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/manual.yml) and set `IsJWT` to 1 like this `IsJWT: 1`
   9. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
 
-<p align="center">
+<p align="left">
   <img src="Img/get_token.png">
-  <img src="Img/IsJWT(1).png">
   <img src="Img/GitSettings-Token.png">
+  <img src="Img/IsJWT(1).png">
 </p>
 
 ### Use Mail and Password
@@ -90,14 +91,15 @@ ___
   1. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   2. Go to your forked repository 🍴
   3. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
-  4. For the secret name, use `MAIL` and set your honeygain mail and `PASS` for your password
+  4. For the secret name, use `MAIL` and set your Honeygain mail and `PASS` for your password
   5. Go to [`.github/workflows/daily.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/daily.yml) and [`.github/workflows/manual.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/manual.yml) and set `IsJWT` to 0 like this `IsJWT: 0`
   6. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
 
-<p align="center">
-  <img src="Img/IsJWT(0).png">
+<p align="left">
   <img src="Img/GitSettings.png">
+  <img src="Img/IsJWT(0).png">
 </p>
+
 
 ### 🐋 Docker  
 
@@ -134,7 +136,7 @@ ___
   name: Daily claim
   on:
     schedule:
-      - cron: '0 14 * * *' # <- UTC Time, replace 0 14
+      - cron: '0 14 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
   ```
 - So, if I want the daily trigger to run at 5:00 AM (UTC + 7), I have to set it to 10:00 PM (UTC ± 0) (use 24-hour 
 format):
@@ -142,7 +144,7 @@ format):
   name: Daily claim
   on:
     schedule:
-      - cron: '0 22 * * *' # UTC Time
+      - cron: '0 22 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
   ```
   
 #### <a name='schedule-linux'></a> 🐧 Linux  

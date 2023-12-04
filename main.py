@@ -11,8 +11,8 @@ from requests import Response
 
 # path to the token file
 config_folder: str = 'Config'
-token_file: str = config_folder + '/HoneygainToken.json'
-config_path: str = config_folder + '/HoneygainConfig.toml'
+token_file: str = f'{config_folder}/HoneygainToken.json'
+config_path: str = f'{config_folder}/HoneygainConfig.toml'
 
 header: dict[str, str] = {'Authorization': ''}
 
@@ -23,7 +23,7 @@ is_jwt = config.get('User', 'IsJWT', fallback='0')
 
 if is_jwt == '1':
     os.environ['IsJWT'] = '1'
-    
+
 # Creates a Log
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
@@ -32,6 +32,23 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
 logging.info("Started HoneygainAutoClaim!")
 print('Started HoneygainAutoClaim!')
 
+if os.getenv('GITHUB_ACTIONS') == 'true':
+    user_repo = os.getenv('GITHUB_REPOSITORY')
+    original_repo = 'MrLoLf/HoneygainAutoClaim'
+    user_url = f'https://api.github.com/repos/{user_repo}/commits/main'
+    original_url = f'https://api.github.com/repos/{original_repo}/commits/main'
+    user_response = requests.get(user_url)
+    original_response = requests.get(original_url)
+    if user_response.status_code == 200 and original_response.status_code == 200:
+        user_commit = user_response.json()['sha']
+        original_commit = original_response.json()['sha']
+        if user_commit == original_commit:
+            print('Your repo is up-to-date with the original repo')
+        else:
+            print('Your repo is not up-to-date with the original repo')
+            print('Please update your repo to the latest commit to get new updates and bug fixes')
+    else:
+        print('Failed to fetch commit information')
 
 def create_config() -> None:
     """
@@ -42,7 +59,7 @@ def create_config() -> None:
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
-    if os.getenv('IsGit') == '1':
+    if os.getenv('GITHUB_ACTIONS') == 'true':
         if os.getenv('IsJWT') == '1':
             token = os.getenv('JWT_TOKEN')
             cfg.set('User', 'token', f"{token}")
@@ -178,16 +195,14 @@ def login(s: requests.session) -> json.loads:
     logging.warning('Logging in to Honeygain!')
     print('Logging in to Honeygain!')
     if os.getenv('IsJWT') == '1':
-        token = payload['token']
-        return {'data': {'access_token': token}}
-    else:
-        token: Response = s.post(urls['login'], json=payload)
-        try:
-            return json.loads(token.text)
-        except json.decoder.JSONDecodeError:
-               logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
-               print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
-               exit(-1)
+        return {'data': {'access_token': payload['token']}}
+    token: Response = s.post(urls['login'], json=payload)
+    try:
+        return json.loads(token.text)
+    except json.decoder.JSONDecodeError:
+           logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
+           print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
+           exit(-1)
 
 
 def gen_token(s: requests.session, invalid: bool = False) -> str | None:

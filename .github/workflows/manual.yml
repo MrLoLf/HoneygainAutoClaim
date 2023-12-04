@@ -10,8 +10,7 @@ jobs:
       - name: Run HoneygainPot
         run: python main.py
         env:
-          MAIL: ${{ secrets.MAIL }}
-          PASS: ${{ secrets.PASS }}
-          JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
-          IsGit: 1
+          MAIL: ${{ secrets.MAIL }} # <- DO NOT enter your email here, it may leak your information
+          PASS: ${{ secrets.PASS }} # <- DO NOT enter your password here, it may leak your information
+          JWT_TOKEN: ${{ secrets.JWT_TOKEN }} # <- DO NOT enter your JWT Token here, it may leak your information
           IsJWT: 1 # <- 0 = Use Mail and Pass ; 1 = Use Token (Default is 1)
