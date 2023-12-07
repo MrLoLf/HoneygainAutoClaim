@@ -50,6 +50,7 @@ if os.getenv('GITHUB_ACTIONS') == 'true':
     else:
         print('Failed to fetch commit information')
 
+
 def create_config() -> None:
     """
     Creates a config with default values.
@@ -77,14 +78,17 @@ def create_config() -> None:
         if choice == '1':
             token = input("Token: ")
             cfg.set('User', 'token', f"{token}")
-            cfg.set('User', 'IsJWT', '1') 
+            cfg.set('User', 'IsJWT', '1')
             os.environ['IsJWT'] = '1'
         elif choice == '2':
             email = input("Email: ")
             password = getpass("Password: ")
             cfg.set('User', 'email', f"{email}")
             cfg.set('User', 'password', f"{password}")
-            cfg.set('User', 'IsJWT', '0') 
+            cfg.set('User', 'IsJWT', '0')
+        else:
+            print("Wrong Input could not read it correctly. Try again!")
+            create_config()
 
     cfg.add_section('Settings')
     cfg.set('Settings', 'Lucky Pot', 'True')
@@ -200,9 +204,9 @@ def login(s: requests.session) -> json.loads:
     try:
         return json.loads(token.text)
     except json.decoder.JSONDecodeError:
-           logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
-           print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
-           exit(-1)
+        logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
+        print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
+        exit(-1)
 
 
 def gen_token(s: requests.session, invalid: bool = False) -> str | None:
@@ -322,6 +326,11 @@ def main() -> None:
             # The post below sends the request, so that the pot claim gets made
             pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
+            if 'type' in pot_claim and pot_claim['type'] == 400:
+                print('You don\'t have enough traffic shared yet to claim you reward. Please try again later.')
+                logging.error('You don\'t have enough traffic shared yet to claim you reward. Please try again later.')
+                return
+
             print(f'Claimed {pot_claim["data"]["credits"]} Credits.')
             logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
 
@@ -336,9 +345,9 @@ def main() -> None:
         balance: dict = balance.json()
         print(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
         logging.info(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
-        print('Closing HoneygainAutoClaim!')
-        logging.info('Closing HoneygainAutoClaim!')
 
 
 if __name__ == '__main__':
     main()
+    print('Closing HoneygainAutoClaim!')
+    logging.info('Closing HoneygainAutoClaim!')
