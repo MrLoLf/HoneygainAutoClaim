@@ -2,12 +2,14 @@ FROM python:3.11-slim-buster
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git
+# Copy every file from the local directory to the container's working directory
+COPY ./* /app/
 
-RUN git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
-
-WORKDIR /app/HoneygainAutoClaim
-
+# Install the dependencies from the requirements.txt file
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Set the working directory to the /app directory
+WORKDIR /app
+
+# Run the main script using Python
 CMD ["python", "main.py"]
