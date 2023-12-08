@@ -2,6 +2,7 @@
 import configparser
 import json
 import logging
+from colorama import just_fix_windows_console, Back, Style, Fore
 import os
 from configparser import ConfigParser
 from getpass import getpass
@@ -29,8 +30,19 @@ if not os.path.exists('Logs'):
     os.mkdir('Logs')
 logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encoding='utf-8', level=logging.INFO,
                     format='%(levelname)s ' '%(asctime)s ' '%(message)s', datefmt='%d/%m/%Y %H:%M:%S')
-logging.info("Started HoneygainAutoClaim!")
-print('Started HoneygainAutoClaim!')
+
+# Initialize Colorama for colored logging
+just_fix_windows_console()
+
+# Create a StreamHandler for printing logs to the console
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Add the console handler to the root logger
+logging.getLogger().addHandler(console_handler)
+
+
+logging.info(Fore.LIGHTWHITE_EX + "Started HoneygainAutoClaim!")
 
 if os.getenv('GITHUB_ACTIONS') == 'true':
     user_repo = os.getenv('GITHUB_REPOSITORY')
@@ -43,20 +55,20 @@ if os.getenv('GITHUB_ACTIONS') == 'true':
         user_commit = user_response.json()['sha']
         original_commit = original_response.json()['sha']
         if user_commit == original_commit:
-            print('Your repo is up-to-date with the original repo')
+            logging.info(Fore.LIGHTWHITE_EX + 'Your repo is up-to-date with the original repo')
         else:
-            print('Your repo is not up-to-date with the original repo')
-            print('Please update your repo to the latest commit to get new updates and bug fixes')
+            logging.warning(Fore.LIGHTYELLOW_EX + 'Your repo is not up-to-date with the original repo')
+            logging.warning(Fore.LIGHTYELLOW_EX + 'Please update your repo to the latest commit to get new updates and '
+                                                  'bug fixes')
     else:
-        print('Failed to fetch commit information')
+        logging.error(Fore.LIGHTRED_EX + 'Failed to fetch commit information')
 
 
 def create_config() -> None:
     """
     Creates a config with default values.
     """
-    logging.warning('Generating new Config.')
-    print('Generating new Config!')
+    logging.warning(Fore.LIGHTYELLOW_EX + 'Generating new Config.')
     cfg: ConfigParser = ConfigParser()
 
     cfg.add_section('User')
@@ -70,24 +82,24 @@ def create_config() -> None:
             cfg.set('User', 'email', f"{email}")
             cfg.set('User', 'password', f"{password}")
     else:
-        print("Please choose authentication method:")
-        print("1. Using Token")
-        print("2. Using Email and Password")
+        logging.info(Fore.LIGHTYELLOW_EX + "Please choose authentication method:")
+        logging.info(Fore.LIGHTYELLOW_EX + "1. Using Token")
+        logging.info(Fore.LIGHTYELLOW_EX + "2. Using Email and Password")
 
-        choice = input("Enter your choice (1 or 2): ")
+        choice = input(Fore.LIGHTYELLOW_EX + "Enter your choice (1 or 2): ")
         if choice == '1':
-            token = input("Token: ")
+            token = input(Fore.LIGHTYELLOW_EX + "Token: ")
             cfg.set('User', 'token', f"{token}")
             cfg.set('User', 'IsJWT', '1')
             os.environ['IsJWT'] = '1'
         elif choice == '2':
-            email = input("Email: ")
-            password = getpass("Password: ")
+            email = input(Fore.LIGHTYELLOW_EX + "Email: ")
+            password = getpass(Fore.LIGHTYELLOW_EX + "Password: ")
             cfg.set('User', 'email', f"{email}")
             cfg.set('User', 'password', f"{password}")
             cfg.set('User', 'IsJWT', '0')
         else:
-            print("Wrong Input could not read it correctly. Try again!")
+            logging.error(Fore.LIGHTRED_EX + "Wrong Input could not read it correctly. Try again!")
             create_config()
 
     cfg.add_section('Settings')
@@ -157,8 +169,7 @@ def get_settings(cfg: ConfigParser) -> dict[str, bool]:
 
 
 if not os.path.exists(config_folder):
-    logging.warning('Creating config folder!')
-    print('Creating config folder!')
+    logging.warning(Fore.LIGHTYELLOW_EX + 'Creating config folder!')
     os.mkdir(config_folder)
 
 if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
@@ -196,16 +207,16 @@ def login(s: requests.session) -> json.loads:
     :param s: currently used session
     :return: json containing the new token
     """
-    logging.warning('Logging in to Honeygain!')
-    print('Logging in to Honeygain!')
+    logging.warning(Fore.LIGHTYELLOW_EX + 'Logging in to Honeygain!')
+
     if os.getenv('IsJWT') == '1':
         return {'data': {'access_token': payload['token']}}
     token: Response = s.post(urls['login'], json=payload)
     try:
         return json.loads(token.text)
     except json.decoder.JSONDecodeError:
-        logging.error('You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.')
-        print("You have exceeded your login tries.\n\nPlease wait a few hours or return tomorrow.")
+        logging.error(Fore.LIGHTRED_EX + 'You have exceeded your login tries.\n\nPlease wait a few hours or return '
+                                         'tomorrow.')
         exit(-1)
 
 
@@ -218,8 +229,7 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     """
     # creating token.json if not existent
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
-        logging.warning('Generating new Token!')
-        print('Generating new Token!')
+        logging.warning(Fore.LIGHTYELLOW_EX + 'Generating new Token!')
 
         # generating new token if the file is empty or is invalid
         with open(token_file, 'w') as f:
@@ -232,8 +242,7 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
 
             # check if token is valid and doesn't have false credentials in it.
             if "title" in token:
-                print("Wrong Login Credentials. Please enter the right ones.")
-                logging.error("Wrong Login Credentials. Please enter the right ones.")
+                logging.error(Fore.LIGHTRED_EX + "Wrong Login Credentials. Please enter the right ones.")
                 return None
             json.dump(token, f)
 
@@ -265,21 +274,18 @@ def achievements_claim(s: requests.session) -> bool:
                             achievement['progresses'][0]['total_progress']:
                         s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']},
                                headers=header)
-                        print(f'Claimed {achievement["title"]}.')
-                        logging.info(f'Claimed {achievement["title"]}.')
+                        logging.info(Fore.LIGHTWHITE_EX + f'Claimed {achievement["title"]}.')
                 except IndexError:
                     if not achievement['is_claimed']:
                         s.post(urls['achievement_claim'], json={"user_achievement_id": achievement['id']},
                                headers=header)
-                        print(f'Claimed {achievement["title"]}.')
-                        logging.info(f'Claimed {achievement["title"]}.')
+                        logging.info(Fore.LIGHTWHITE_EX + f'Claimed {achievement["title"]}.')
         except KeyError:
             if 'message' in achievements:
                 token: str = gen_token(s, True)
 
                 if token is None:
-                    print("Closing HoneygainAutoClaim! Due to false login Credentials.")
-                    logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
+                    logging.info(Fore.LIGHTWHITE_EX + "Closing HoneygainAutoClaim! Due to false login Credentials.")
                     exit(-1)
 
                 # header for all further requests
@@ -298,23 +304,20 @@ def main() -> None:
         token: str = gen_token(s)
 
         if token is None:
-            print("Closing HoneygainAutoClaim! Due to false login Credentials.")
-            logging.info("Closing HoneygainAutoClaim! Due to false login Credentials.")
+            logging.info(Fore.LIGHTWHITE_EX + "Closing HoneygainAutoClaim! Due to false login Credentials.")
             exit(-1)
 
         # header for all further requests
         header = {'Authorization': f'Bearer {token}'}
 
         if not achievements_claim(s):
-            logging.error('Failed to claim achievements.')
-            print('Failed to claim achievements.')
+            logging.error(Fore.LIGHTRED_EX + 'Failed to claim achievements.')
 
         # check if the token is valid by trying to get the current balance with it
         dashboard: Response = s.get(urls['balance'], headers=header)
         dashboard: dict = dashboard.json()
         if 'code' in dashboard and dashboard['code'] == 401:
-            print('Invalid token generating new one.')
-            logging.info('Invalid token generating new one.')
+            logging.error(Fore.LIGHTRED_EX + 'Invalid token generating new one.')
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
 
@@ -327,27 +330,23 @@ def main() -> None:
             pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
             if 'type' in pot_claim and pot_claim['type'] == 400:
-                print('You don\'t have enough traffic shared yet to claim you reward. Please try again later.')
-                logging.error('You don\'t have enough traffic shared yet to claim you reward. Please try again later.')
+                logging.error(Fore.LIGHTRED_EX + 'You don\'t have enough traffic shared yet to claim you reward. '
+                                                 'Please try again later.')
                 return
 
-            print(f'Claimed {pot_claim["data"]["credits"]} Credits.')
-            logging.info(f'Claimed {pot_claim["data"]["credits"]} Credits.')
+            logging.info(Fore.LIGHTWHITE_EX + f'Claimed {pot_claim["data"]["credits"]} Credits.')
 
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
-        print(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
-        logging.info(f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
+        logging.info(Fore.LIGHTWHITE_EX + f'Won today {pot_winning["data"]["winning_credits"]} Credits.')
 
         # gets the current balance
         balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
-        print(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
-        logging.info(f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
+        logging.info(Fore.LIGHTWHITE_EX + f'You currently have {balance["data"]["payout"]["credits"]} Credits.')
 
 
 if __name__ == '__main__':
     main()
-    print('Closing HoneygainAutoClaim!')
-    logging.info('Closing HoneygainAutoClaim!')
+    logging.info(Fore.LIGHTWHITE_EX + 'Closing HoneygainAutoClaim!')
