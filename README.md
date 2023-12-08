@@ -25,6 +25,7 @@ ___
 - [Installation/Usage](#usage)  
 - [Creating a schedule](#create-a-schedule)  
 - [Config changes](#config)  
+- [Change logging behavior](#logging)
   
 ## Requirements
 
@@ -203,3 +204,20 @@ am.
 - ```commandline
   nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml
   ```
+## <a name='logging'></a>Change logging behavior
+  
+### Disclaimer  
+Only do this if you know what you are doing. You can break the program and logging with changes made here.
+  
+### Usage  
+- Open `main.py`
+- Edit this line
+  ```python 
+    logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encoding='utf-8', level=logging.INFO,
+                        format='%(levelname)s ' '%(asctime)s ' '%(message)s', datefmt='%d/%m/%Y %H:%M:%S') 
+  ```
+- If you want to keep your old logs you can change the filemode from `w` to `a` it uses the default python filemodes.  
+  By changing this be sure to clean your log sometimes because it can get very large and use a lot of space.
+- To change the logging level simple change INFO to WARN or ERROR
+- If you want to change the format you can remove the time for example by removing `%(asctime)s`
+- To change the time that's being shown change the datefmt
