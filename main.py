@@ -16,7 +16,7 @@ from getpass import getpass
 
 import colorama
 import requests
-from colorama import just_fix_windows_console, Fore
+from colorama import Fore
 from requests import Response
 
 # path to the token file
