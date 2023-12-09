@@ -14,6 +14,7 @@ import sys
 from configparser import ConfigParser
 from getpass import getpass
 
+import colorama
 import requests
 from colorama import just_fix_windows_console, Fore
 from requests import Response
@@ -41,7 +42,7 @@ logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encodi
                     datefmt='%d/%m/%Y %H:%M:%S')
 
 # Initialize Colorama for colored logging
-just_fix_windows_console()
+colorama.init()
 
 # Create a StreamHandler for printing logs to the console
 console_handler = logging.StreamHandler()
