@@ -117,6 +117,10 @@ ___
   ```commandline  
   docker build -t honeygainautoclaim .
   ```  
+- To build it for arm run this command:
+  ```commandline
+  docker buildx build --platform linux/arm64 -t honeygainautoclaim .
+  ```
 - To run the docker container  
   ```commandline  
   docker run -it --restart unless-stopped honeygainautoclaim  
