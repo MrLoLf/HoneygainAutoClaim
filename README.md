@@ -117,7 +117,7 @@ ___
   ```commandline  
   docker build -t honeygainautoclaim .
   ```  
-- To build it for arm run this command:
+- To build it for arm64 like a raspberry pi run this command:
   ```commandline
   docker buildx build --platform linux/arm64 -t honeygainautoclaim .
   ```
