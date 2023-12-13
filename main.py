@@ -26,17 +26,10 @@ config_path: str = f'{config_folder}/HoneygainConfig.toml'
 
 header: dict[str, str] = {'Authorization': ''}
 
-config: ConfigParser = ConfigParser()
-config.read(config_path)
-
-is_jwt = config.get('User', 'IsJWT', fallback='0')
-
-if is_jwt == '1':
-    os.environ['IsJWT'] = '1'
-
-# Creates a Log
+# Creates a Logs folder
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
+
 logging.basicConfig(filename='Logs/HoneygainAutoClaim.log', filemode='w', encoding='utf-8',
                     level=logging.INFO, format='%(levelname)s ' '%(asctime)s ' '%(message)s',
                     datefmt='%d/%m/%Y %H:%M:%S')
@@ -58,24 +51,30 @@ RED = Fore.LIGHTRED_EX
 
 logging.info("%sStarted HoneygainAutoClaim!", WHITE)
 
-if os.getenv('GITHUB_ACTIONS') == 'true':
-    user_repo = os.getenv('GITHUB_REPOSITORY')
-    ORIGINAL_REPO = 'MrLoLf/HoneygainAutoClaim'
-    user_url = f'https://api.github.com/repos/{user_repo}/commits/main'
-    original_url = f'https://api.github.com/repos/{ORIGINAL_REPO}/commits/main'
-    user_response = requests.get(user_url, timeout=10000)
-    original_response = requests.get(original_url, timeout=10000)
-    if user_response.status_code == 200 and original_response.status_code == 200:
-        user_commit = user_response.json()['sha']
-        original_commit = original_response.json()['sha']
-        if user_commit == original_commit:
-            logging.info('%sYour repo is up-to-date with the original repo', WHITE)
+
+def check_up_to_date_github() -> None:
+    """
+    This function checks if the environment is GitHub and checks for newer commits on the host
+    that doesn't align with the latest commit of the original repo
+    """
+    if os.getenv('GITHUB_ACTIONS') == 'true':
+        user_repo = os.getenv('GITHUB_REPOSITORY')
+        original_repo = 'MrLoLf/HoneygainAutoClaim'
+        user_url = f'https://api.github.com/repos/{user_repo}/commits/main'
+        original_url = f'https://api.github.com/repos/{original_repo}/commits/main'
+        user_response = requests.get(user_url, timeout=10000)
+        original_response = requests.get(original_url, timeout=10000)
+        if user_response.status_code == 200 and original_response.status_code == 200:
+            user_commit = user_response.json()['sha']
+            original_commit = original_response.json()['sha']
+            if user_commit == original_commit:
+                logging.info('%sYour repo is up-to-date with the original repo', WHITE)
+            else:
+                logging.warning('%sYour repo is not up-to-date with the original repo', YELLOW)
+                logging.warning('%sPlease update your repo to the latest commit to get new updates '
+                                'and bug fixes', YELLOW)
         else:
-            logging.warning('%sYour repo is not up-to-date with the original repo', YELLOW)
-            logging.warning('%sPlease update your repo to the latest commit to get new updates '
-                            'and bug fixes', YELLOW)
-    else:
-        logging.error('%sFailed to fetch commit information', RED)
+            logging.error('%sFailed to fetch commit information', RED)
 
 
 def create_config() -> None:
@@ -99,6 +98,10 @@ def create_config() -> None:
         logging.info("%sPlease choose authentication method:", WHITE)
         logging.info("%s1. Using Token", WHITE)
         logging.info("%s2. Using Email and Password", WHITE)
+
+        cfg.set('User', 'email', "")
+        cfg.set('User', 'password', "")
+        cfg.set('User', 'token', "")
 
         choice = input(WHITE + "Enter your choice (1 or 2): ")
         if choice == '1':
@@ -127,6 +130,7 @@ def create_config() -> None:
     cfg.set('Url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
     cfg.set('Url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
 
+    # write config to file
     with open(config_path, 'w', encoding='utf-8') as configfile:
         configfile.truncate(0)
         configfile.seek(0)
@@ -203,6 +207,11 @@ if (not config.has_section('User') or not config.has_section('Settings')
         or not config.has_section('Url')):
     create_config()
 
+is_jwt = config.get('User', 'IsJWT', fallback='0')
+
+if is_jwt == '1':
+    os.environ['IsJWT'] = '1'
+
 try:
     # Settings
     settings: dict[str, bool] = get_settings(config)
@@ -214,16 +223,12 @@ try:
 except configparser.NoOptionError:
     # Creating a new config if the there were some changes in the config file
     create_config()
-    # Settings
-    settings: dict[str, bool] = get_settings(config)
-    # Urls
-    urls: dict[str, str] = get_urls(config)
-    # User credentials
-    payload: dict[str, str] = get_login(config)
 
 except configparser.NoSectionError:
     # Creating a new config if the there were some changes in the config file
     create_config()
+
+finally:
     # Settings
     settings: dict[str, bool] = get_settings(config)
     # Urls
@@ -323,6 +328,9 @@ def main() -> None:
     """
     Automatically claims the Lucky pot and prints out current stats.
     """
+
+    check_up_to_date_github()
+
     # starting a new session
     with requests.session() as s:
         token: str = gen_token(s)
@@ -348,7 +356,10 @@ def main() -> None:
         # gets the pot winning credits
         pot_winning: Response = s.get(urls['pot'], headers=heade)
         pot_winning: dict = pot_winning.json()
-
+        if 'data' not in pot_winning:
+            logging.error('%sYour login credentials might be false, make sure to they are right '
+                          'and try again.', RED)
+            return
         if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
             # The post below sends the request, so that the pot claim gets made
             pot_claim: Response = s.post(urls['pot'], headers=heade)
