@@ -19,12 +19,11 @@ import requests
 from colorama import Fore
 from requests import Response
 
-# path to the token file
+# Path to the token file, Config Folder
 config_folder: str = 'Config'
 token_file: str = f'{config_folder}/HoneygainToken.json'
 config_path: str = f'{config_folder}/HoneygainConfig.toml'
 
-header: dict[str, str] = {'Authorization': ''}
 
 # Creates a Logs folder
 if not os.path.exists('Logs'):
@@ -49,6 +48,8 @@ WHITE = Fore.LIGHTWHITE_EX
 YELLOW = Fore.LIGHTYELLOW_EX
 RED = Fore.LIGHTRED_EX
 
+config: ConfigParser = ConfigParser()
+
 logging.info("%sStarted HoneygainAutoClaim!", WHITE)
 
 
@@ -64,7 +65,10 @@ def check_up_to_date_github() -> None:
         original_url = f'https://api.github.com/repos/{original_repo}/commits/main'
         user_response = requests.get(user_url, timeout=10000)
         original_response = requests.get(original_url, timeout=10000)
+        # Checks if the response is valid.
         if user_response.status_code == 200 and original_response.status_code == 200:
+            # Get the sha of the last user commit and the original repo and look if they are the
+            # same if not tell the user to update.
             user_commit = user_response.json()['sha']
             original_commit = original_response.json()['sha']
             if user_commit == original_commit:
@@ -74,6 +78,7 @@ def check_up_to_date_github() -> None:
                 logging.warning('%sPlease update your repo to the latest commit to get new updates '
                                 'and bug fixes', YELLOW)
         else:
+            # The sites where not available
             logging.error('%sFailed to fetch commit information', RED)
 
 
@@ -84,25 +89,29 @@ def create_config() -> None:
     logging.warning('%sGenerating new Config.', YELLOW)
     cfg: ConfigParser = ConfigParser()
 
+    # Adding User section with email password and token, which is filled in afterward
     cfg.add_section('User')
+    cfg.set('User', 'email', "")
+    cfg.set('User', 'password', "")
+    cfg.set('User', 'token', "")
+
+    # Check if we are running via GitHub Actions or (Docker or via machine)
     if os.getenv('GITHUB_ACTIONS') == 'true':
         if os.getenv('IsJWT') == '1':
             token = os.getenv('JWT_TOKEN')
             cfg.set('User', 'token', f"{token}")
+            cfg.set('User', 'IsJWT', '1')
         else:
             email = os.getenv('MAIL')
             password = os.getenv('PASS')
             cfg.set('User', 'email', f"{email}")
             cfg.set('User', 'password', f"{password}")
+            cfg.set('User', 'IsJWT', '0')
     else:
+        # Takes user input via commandline
         logging.info("%sPlease choose authentication method:", WHITE)
         logging.info("%s1. Using Token", WHITE)
         logging.info("%s2. Using Email and Password", WHITE)
-
-        cfg.set('User', 'email', "")
-        cfg.set('User', 'password', "")
-        cfg.set('User', 'token', "")
-
         choice = input(WHITE + "Enter your choice (1 or 2): ")
         if choice == '1':
             token = input(WHITE + "Token: ")
@@ -118,11 +127,14 @@ def create_config() -> None:
         else:
             logging.error("%sWrong Input could not read it correctly. Try again!", RED)
             create_config()
-
+    # Adding Settings section, which allows the user to disable the lucky pot or achievements.
     cfg.add_section('Settings')
     cfg.set('Settings', 'Lucky Pot', 'True')
     cfg.set('Settings', 'Achievements', 'True')
 
+    # This section holds all urls which are required for the program to run. This is made so if
+    # the project gets abandoned the user doesn't have to change them in code. Instead, they can be
+    # changed in a config file, if the code would still work.
     cfg.add_section('Url')
     cfg.set('Url', 'login', 'https://dashboard.honeygain.com/api/v1/users/tokens')
     cfg.set('Url', 'pot', 'https://dashboard.honeygain.com/api/v1/contest_winnings')
@@ -130,11 +142,38 @@ def create_config() -> None:
     cfg.set('Url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
     cfg.set('Url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
 
-    # write config to file
+    # Write config to file
     with open(config_path, 'w', encoding='utf-8') as configfile:
         configfile.truncate(0)
         configfile.seek(0)
         cfg.write(configfile)
+
+
+def check_config_integrity(conf: ConfigParser) -> None:
+    """
+    Checks if the config file, is not empty, and folder exists.
+    """
+    if not os.path.exists(config_folder):
+        logging.warning('%sCreating config folder!', YELLOW)
+        os.mkdir(config_folder)
+
+    # check if the config file exists and isn't empty if not create a new one
+    if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
+        create_config()
+        return
+
+    # the user already has a config, so make sure the config file has all required sections.
+    conf.read(config_path)
+    if (not conf.has_section('User') or not conf.has_section('Settings')
+            or not conf.has_section('Url')):
+        create_config()
+
+
+check_config_integrity(config)
+# The user has a good enough config to work with, so load it
+config.read(config_path)
+
+is_jwt = config.get('User', 'IsJWT', fallback='0')
 
 
 def get_urls(cfg: ConfigParser) -> dict[str, str]:
@@ -163,7 +202,7 @@ def get_login(cfg: ConfigParser) -> dict[str, str]:
         """
     user: dict[str, str] = {}
     try:
-        if os.getenv('IsJWT') == '1':
+        if is_jwt == '1':
             token = cfg.get('User', 'token')
             user: dict[str, str] = {'token': token}
         else:
@@ -193,25 +232,7 @@ def get_settings(cfg: ConfigParser) -> dict[str, bool]:
     return settings_dict
 
 
-if not os.path.exists(config_folder):
-    logging.warning('%sCreating config folder!', YELLOW)
-    os.mkdir(config_folder)
-
-if not os.path.isfile(config_path) or os.stat(config_path).st_size == 0:
-    create_config()
-
-config: ConfigParser = ConfigParser()
-config.read(config_path)
-
-if (not config.has_section('User') or not config.has_section('Settings')
-        or not config.has_section('Url')):
-    create_config()
-
-is_jwt = config.get('User', 'IsJWT', fallback='0')
-
-if is_jwt == '1':
-    os.environ['IsJWT'] = '1'
-
+# Try to get info of the config file. If it fails for some reason create a new config and try again.
 try:
     # Settings
     settings: dict[str, bool] = get_settings(config)
@@ -245,7 +266,7 @@ def login(s: requests.session) -> json.loads:
     """
     logging.warning('%sLogging in to Honeygain!', YELLOW)
 
-    if os.getenv('IsJWT') == '1':
+    if is_jwt == '1':
         return {'data': {'access_token': payload['token']}}
     token: Response = s.post(urls['login'], json=payload)
     try:
@@ -263,26 +284,27 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     :param invalid: true if the token read before was invalid
     :return: string containing the token
     """
-    # creating token.json if not existent
+    # Creating token.json if not existent
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
         logging.warning('%sGenerating new Token!', YELLOW)
 
-        # generating new token if the file is empty or is invalid
+        # Generating new token if the file is empty or is invalid
         with open(token_file, 'w', encoding='utf-8') as f:
-            # remove what ever was in the file and jump to the beginning
+            # Remove what ever was in the file and jump to the beginning
             f.truncate(0)
             f.seek(0)
 
-            # get json and write it to the file
+            # Get json with the token
             token: dict = login(s)
 
-            # check if token is valid and doesn't have false credentials in it.
+            # Check if token is valid and doesn't have false credentials in it.
             if "title" in token:
                 logging.error('%sWrong Login Credentials. Please enter the right ones.', RED)
                 return None
+            # Write the token to the token file
             json.dump(token, f)
 
-    # reading the token from the file
+    # Reading the token from the file
     with open(token_file, 'r+', encoding='utf-8') as f:
         token: dict = json.load(f)
 
@@ -290,47 +312,49 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     return token["data"]["access_token"]
 
 
-def achievements_claim(s: requests.session, heade: dict[str, str]) -> bool:
+def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
     """
     function to claim achievements
     """
-    # to use the same header as defined earlier
-    if settings['achievements_bool']:
+    # If the user disabled achievement claiming return False
+    if not settings['achievements_bool']:
+        return False
 
-        # get all achievements
-        achievements: Response = s.get(urls['achievements'], headers=heade)
-        achievements: dict = achievements.json()
+    # Get all achievements
+    achievements: Response = s.get(urls['achievements'], headers=header)
+    achievements: dict = achievements.json()
 
-        # check if the get is successful
-        if 'data' not in achievements:
-            return False
+    # Check if the get is successful
+    if 'data' not in achievements:
+        return False
 
-        # Loop over all achievements and claim them, if completed.
-        for achievement in achievements['data']:
-            # this checks if the achievment has progress and if it does do the check on elif
-            # otherwise try to claim it
-            if (not achievement['is_claimed'] and 'progresses' in achievement and not
-                    len(achievement['progresses'][0]) > 0):
+    # Loop over all achievements and claim them.
+    for achievement in achievements['data']:
+        # This checks if the achievment has progress and if it does do the check on elif
+        # otherwise try to claim it.
+        if (not achievement['is_claimed'] and 'progresses' in achievement and
+                not len(achievement['progresses'][0]) > 0):
 
-                # this trys to claim the achievment when no progress bar is present
-                s.post(urls['achievement_claim'],
-                       json={"user_achievement_id": achievement['id']},
-                       headers=heade)
-                logging.info(f'%sTrying to claim {achievement["title"]}.', WHITE)
+            # This trys to claim the achievment when no progress bar is present
+            s.post(urls['achievement_claim'],
+                   json={"user_achievement_id": achievement['id']},
+                   headers=header)
+            logging.info(f'%sTrying to claim {achievement["title"]}.', WHITE)
 
-            elif (not achievement['is_claimed'] and 'progresses' in achievement and
-                    len(achievement['progresses'][0]) > 0 and
-                    achievement['progresses'][0]['current_progress'] ==
-                    achievement['progresses'][0]['total_progress']):
+        # If the progress is complete and the achievement isn't claimed do so.
+        elif (not achievement['is_claimed'] and 'progresses' in achievement and
+              len(achievement['progresses'][0]) > 0 and
+              achievement['progresses'][0]['current_progress'] ==
+              achievement['progresses'][0]['total_progress']):
 
-                # this claims the achievment if the progress is complete
-                s.post(urls['achievement_claim'],
-                       json={"user_achievement_id": achievement['id']},
-                       headers=heade)
-                logging.info(f'%sClaimed {achievement["title"]}.', WHITE)
+            # This claims the achievment if the progress is complete
+            s.post(urls['achievement_claim'],
+                   json={"user_achievement_id": achievement['id']},
+                   headers=header)
+            logging.info(f'%sClaimed {achievement["title"]}.', WHITE)
 
-        return True
-    return False
+    # Tried to claim achievements successfully
+    return True
 
 
 def main() -> None:
@@ -340,7 +364,7 @@ def main() -> None:
 
     check_up_to_date_github()
 
-    # starting a new session
+    # Starting a new session
     with requests.session() as s:
         token: str = gen_token(s)
 
@@ -348,31 +372,35 @@ def main() -> None:
             logging.info("%sClosing HoneygainAutoClaim! Due to false login Credentials.", WHITE)
             sys.exit(-1)
 
-        # header for all further requests
-        heade: dict[str, str] = {'Authorization': f'Bearer {token}'}
+        # Header for all further requests
+        header: dict[str, str] = {'Authorization': f'Bearer {token}'}
 
-        if not achievements_claim(s, heade):
+        if not achievements_claim(s, header):
             logging.error('%sFailed to claim achievements.', RED)
 
-        # check if the token is valid by trying to get the current balance with it
-        dashboard: Response = s.get(urls['balance'], headers=heade)
+        # Check if the token is valid by trying to get the current balance with it
+        dashboard: Response = s.get(urls['balance'], headers=header)
         dashboard: dict = dashboard.json()
         if 'code' in dashboard and dashboard['code'] == 401:
             logging.error('%sInvalid token generating new one.', RED)
             token: str = gen_token(s, True)
             header['Authorization'] = f'Bearer {token}'
 
-        # gets the pot winning credits
-        pot_winning: Response = s.get(urls['pot'], headers=heade)
+        # Gets the pot winning credits
+        pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
+        # Check if the response is valid if not close the program
         if 'data' not in pot_winning:
             logging.error('%sYour login credentials might be false, make sure to they are right '
                           'and try again.', RED)
-            return
+            sys.exit(-1)
+        # Checks if the user wants to claim the lucky pot and do so if the pot isn't claimed yet.
         if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
-            # The post below sends the request, so that the pot claim gets made
-            pot_claim: Response = s.post(urls['pot'], headers=heade)
+            # The post below sends the request, so that the pot claim gets made.
+            pot_claim: Response = s.post(urls['pot'], headers=header)
             pot_claim: dict = pot_claim.json()
+
+            # Check if the claim was successful, if not exit normally.
             if 'type' in pot_claim and pot_claim['type'] == 400:
                 logging.error('%sYou don\'t have enough traffic shared yet to claim you reward. '
                               'Please try again later.', RED)
@@ -380,13 +408,13 @@ def main() -> None:
 
             logging.info(f'%sClaimed {pot_claim["data"]["credits"]} Credits.', WHITE)
 
-        # gets the pot winning credits
-        pot_winning: Response = s.get(urls['pot'], headers=heade)
+        # Gets the pot winning credits
+        pot_winning: Response = s.get(urls['pot'], headers=header)
         pot_winning: dict = pot_winning.json()
         logging.info(f'%sWon today {pot_winning["data"]["winning_credits"]} Credits.', WHITE)
 
-        # gets the current balance
-        balance: Response = s.get(urls['balance'], headers=heade)
+        # Gets the current balance
+        balance: Response = s.get(urls['balance'], headers=header)
         balance: dict = balance.json()
         logging.info(f'%sYou currently have {balance["data"]["payout"]["credits"]} Credits.', WHITE)
 
