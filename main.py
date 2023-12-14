@@ -301,25 +301,34 @@ def achievements_claim(s: requests.session, heade: dict[str, str]) -> bool:
         achievements: Response = s.get(urls['achievements'], headers=heade)
         achievements: dict = achievements.json()
 
-        # Loop over all achievements and claim them, if completed.
-        try:
-            for achievement in achievements['data']:
-                try:
-                    if (not achievement['is_claimed'] and
-                            achievement['progresses'][0]['current_progress'] ==
-                            achievement['progresses'][0]['total_progress']):
-                        s.post(urls['achievement_claim'],
-                               json={"user_achievement_id": achievement['id']},
-                               headers=heade)
-                        logging.info(f'%sClaimed {achievement["title"]}.', WHITE)
-                except IndexError:
-                    if not achievement['is_claimed']:
-                        s.post(urls['achievement_claim'],
-                               json={"user_achievement_id": achievement['id']},
-                               headers=heade)
-                        logging.info(f'%sClaimed {achievement["title"]}.', WHITE)
-        except KeyError:
+        # check if the get is successful
+        if 'data' not in achievements:
             return False
+
+        # Loop over all achievements and claim them, if completed.
+        for achievement in achievements['data']:
+            # this checks if the achievment has progress and if it does do the check on elif
+            # otherwise try to claim it
+            if (not achievement['is_claimed'] and 'progresses' in achievement and not
+                    len(achievement['progresses'][0]) > 0):
+
+                # this trys to claim the achievment when no progress bar is present
+                s.post(urls['achievement_claim'],
+                       json={"user_achievement_id": achievement['id']},
+                       headers=heade)
+                logging.info(f'%sTrying to claim {achievement["title"]}.', WHITE)
+
+            elif (not achievement['is_claimed'] and 'progresses' in achievement and
+                    len(achievement['progresses'][0]) > 0 and
+                    achievement['progresses'][0]['current_progress'] ==
+                    achievement['progresses'][0]['total_progress']):
+
+                # this claims the achievment if the progress is complete
+                s.post(urls['achievement_claim'],
+                       json={"user_achievement_id": achievement['id']},
+                       headers=heade)
+                logging.info(f'%sClaimed {achievement["title"]}.', WHITE)
+
         return True
     return False
 
