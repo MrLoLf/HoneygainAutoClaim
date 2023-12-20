@@ -332,8 +332,7 @@ def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
         # This checks if the achievment has progress and if it does do the check on elif
         # otherwise try to claim it.
         if (not achievement['is_claimed'] and 'progresses' in achievement and
-                not len(achievement['progresses']) > 0 and
-                not len(achievement['progresses'][0]) > 0):
+                achievement['progresses'] == []):
 
             # This trys to claim the achievment when no progress bar is present
             s.post(urls['achievement_claim'],
@@ -343,7 +342,7 @@ def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
 
         # If the progress is complete and the achievement isn't claimed do so.
         elif (not achievement['is_claimed'] and 'progresses' in achievement and
-              len(achievement['progresses'][0]) > 0 and
+              not achievement['progresses'] == [] and
               achievement['progresses'][0]['current_progress'] ==
               achievement['progresses'][0]['total_progress']):
 
