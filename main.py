@@ -3,7 +3,7 @@
 @author : gorouflex
 @license : MIT
 
-Automatically claims the Lucky pot and prints out current stats.
+Automatically claims the Lucky pot, achievements and it prints out current stats.
 """
 # !/usr/bin/env python3
 import configparser
