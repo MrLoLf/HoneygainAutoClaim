@@ -24,7 +24,6 @@ config_folder: str = 'Config'
 token_file: str = f'{config_folder}/HoneygainToken.json'
 config_path: str = f'{config_folder}/HoneygainConfig.toml'
 
-
 # Creates a Logs folder
 if not os.path.exists('Logs'):
     os.mkdir('Logs')
@@ -333,6 +332,7 @@ def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
         # This checks if the achievment has progress and if it does do the check on elif
         # otherwise try to claim it.
         if (not achievement['is_claimed'] and 'progresses' in achievement and
+                not len(achievement['progresses']) > 0 and
                 not len(achievement['progresses'][0]) > 0):
 
             # This trys to claim the achievment when no progress bar is present
