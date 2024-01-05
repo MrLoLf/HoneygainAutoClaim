@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sys
+import shutil
 from configparser import ConfigParser
 from getpass import getpass
 
@@ -420,4 +421,9 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+    if os.getenv('GITHUB_ACTIONS') == 'true':
+       try:
+         shutil.rmtree(config_folder)
+       except:
+         exit(-1)
     logging.info('%sClosing HoneygainAutoClaim!', WHITE)
