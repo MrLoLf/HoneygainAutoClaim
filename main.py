@@ -60,16 +60,16 @@ def check_up_to_date_github() -> None:
     if os.getenv('GITHUB_ACTIONS') == 'true':
         user_repo = os.getenv('GITHUB_REPOSITORY')
         original_repo = 'MrLoLf/HoneygainAutoClaim'
-        user_url = f'https://api.github.com/repos/{user_repo}/commits/main'
-        original_url = f'https://api.github.com/repos/{original_repo}/commits/main'
+        user_url = f'https://api.github.com/repos/{user_repo}/commits?path=main.py'
+        original_url = f'https://api.github.com/repos/{original_repo}/commits?path=main.py'
         user_response = requests.get(user_url, timeout=10000)
         original_response = requests.get(original_url, timeout=10000)
         # Checks if the response is valid.
         if user_response.status_code == 200 and original_response.status_code == 200:
             # Get the sha of the last user commit and the original repo and look if they are the
             # same if not tell the user to update.
-            user_commit = user_response.json()['sha']
-            original_commit = original_response.json()['sha']
+            user_commit = user_response.json()[0]['sha']
+            original_commit = original_response.json()[0]['sha']
             if user_commit == original_commit:
                 logging.info('%sYour repo is up-to-date with the original repo', WHITE)
             else:
