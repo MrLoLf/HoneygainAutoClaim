@@ -77,14 +77,12 @@ ___
   4. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   5. Go to your forked repository 🍴
   6. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
-  7. Use `JWT_TOKEN` and paste your JWT Token from Steps 3
-  8. Go to [`.github/workflows/daily.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/daily.yml) and [`.github/workflows/manual.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/manual.yml) and set `IsJWT` to 1 like this `IsJWT: 1`
-  9. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
+  7. Use `JWT_TOKEN` and paste your JWT Token from Steps 3. Create another secret and use `IsJWT` set to `1`.
+  8. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
 
 <p align="left">
   <img src="Img/get_token.png">
   <img src="Img/GitSettings-Token.png">
-  <img src="Img/IsJWT(1).png">
 </p>
 
 ### Use Mail and Password
@@ -92,13 +90,11 @@ ___
   1. [Fork this repository 🍴](https://github.com/MrLoLf/HoneygainAutoClaim/fork)
   2. Go to your forked repository 🍴
   3. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
-  4. For the secret name, use `MAIL` and set your Honeygain mail and `PASS` for your password
-  5. Go to [`.github/workflows/daily.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/daily.yml) and [`.github/workflows/manual.yml`](https://github.com/MrLoLf/HoneygainAutoClaim/blob/main/.github/workflows/manual.yml) and set `IsJWT` to 0 like this `IsJWT: 0`
-  6. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
+  4. For the secret name, use `MAIL` and set your Honeygain email and `PASS` for your password and `IsJWT` set to `0`.
+  5. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
 
 <p align="left">
   <img src="Img/GitSettings.png">
-  <img src="Img/IsJWT(0).png">
 </p>
 
 
