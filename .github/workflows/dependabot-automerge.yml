@@ -27,7 +27,7 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Enable auto-merge for Dependabot on Docker Login Action
+      - name: Enable auto-merge for Dependabot on Action Setup Python
         if: contains(steps.metadata.outputs.dependency-names, 'actions/setup-python')
         run: gh pr merge --auto --merge "$PR_URL"
         env:
