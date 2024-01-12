@@ -422,10 +422,11 @@ def main() -> None:
 if __name__ == '__main__':
     main()
     if os.getenv('GITHUB_ACTIONS') == 'true':
-       try:
-         shutil.rmtree(config_folder)
-       # If cannot delete the Config folder for some reason then quit and tell users about that
-       except:
-         logging.error('%sCannot delete Config folder, check if any programs are using it or not?', RED)  
-         exit(-1)
+        try:
+            shutil.rmtree(config_folder)
+        # Cannot delete the Config folder for some reason then quit and tell users about that
+        except shutil.Error:
+            logging.error(
+                '%sCannot delete Config folder, check if any programs are using it or not?', RED)
+            exit(-1)
     logging.info('%sClosing HoneygainAutoClaim!', WHITE)
