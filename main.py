@@ -428,5 +428,5 @@ if __name__ == '__main__':
         except shutil.Error:
             logging.error(
                 '%sCannot delete Config folder, check if any programs are using it or not?', RED)
-            exit(-1)
+            sys.exit(-1)
     logging.info('%sClosing HoneygainAutoClaim!', WHITE)
