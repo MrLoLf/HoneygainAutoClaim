@@ -18,9 +18,6 @@ FROM cgr.dev/chainguard/python:latest@sha256:8eb266ac46896dd7cf17da76164517fe4eb
 WORKDIR /app
 ENV PATH="/venv/bin:$PATH"
 
-# Make sure you update Python version in path - has to be manually changed whenever Chainguard updates their Python package
-COPY --from=builder /home/nonroot/.local/lib/python3.12/site-packages /home/nonroot/.local/lib/python3.12/site-packages
-
 COPY main.py .
 COPY --from=builder /app/venv /venv
 
