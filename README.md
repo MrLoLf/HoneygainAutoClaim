@@ -1,6 +1,6 @@
 # HoneygainAutoClaim  
 
-[![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql) <a href="https://www.buymeacoffee.com/mrlolf" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="40" width="170"></a> 
+[![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)
   
 HoneygainAutoClaim is a 🐍 [Python](https://www.python.org/) script (bot) that **automatically claims your daily bonus** and **achievements** 
 from 🐝 [Honeygain](https://r.honeygain.me/ROSCH76C7D) 🍯.  
