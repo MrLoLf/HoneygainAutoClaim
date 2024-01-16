@@ -7,7 +7,8 @@ WORKDIR /app
 
 RUN python -m venv /app/venv
 COPY requirements.txt .
-
+# use newest pip version to have less CVE
+RUN python -m pip install --upgrade pip
 # Install the dependencies from the requirements.txt file
 RUN pip install --no-cache-dir -r requirements.txt
 
