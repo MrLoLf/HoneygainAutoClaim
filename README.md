@@ -104,12 +104,15 @@ ___
   ```commandline
   git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
   ```
-
-- Navigate in to the directory `HoneygainAutoClaim`
+  or use the docker image from docker hub
+  ```commandline
+  docker pull mrlolf/honeygainautoclaim:latest
+  ```
+- Navigate in to the directory `HoneygainAutoClaim` this isn't needed if the image was used
   ```commandline
   cd HoneygainAutoClaim
   ```  
-- To build the Dockerfile, run the command below:  
+- To build the Dockerfile, run the command below (this can be skiped if the image was used):  
   ```commandline  
   docker build -t honeygainautoclaim .
   ```  
@@ -117,10 +120,11 @@ ___
   ```commandline
   docker buildx build --platform linux/arm64 -t honeygainautoclaim .
   ```
-- To run the docker container  
+- To run the docker container use on of the commands below. 
+  When using the image simply add in front of honeygainautoclaim mrlolf/ it should look like this `mrlolf/honeygainautoclaim` 
   ```commandline  
   docker run -it  honeygainautoclaim  
-  ```  
+  ```
   or run it without the interactive menu
   ```commandline
   docker run -e MAIL="your@email.here" -e PASS="PASSWORD" honeygainautoclaim
