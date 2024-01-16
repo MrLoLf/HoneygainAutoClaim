@@ -119,8 +119,16 @@ ___
   ```
 - To run the docker container  
   ```commandline  
-  docker run -it --restart unless-stopped honeygainautoclaim  
+  docker run -it  honeygainautoclaim  
   ```  
+  or run it without the interactive menu
+  ```commandline
+  docker run -e MAIL="your@email.here" -e PASS="PASSWORD" honeygainautoclaim
+  ```
+  or just with the token
+  ```commandline
+  docker run -e JWT_TOKEN="YOURTOKEN" honeygainautoclaim
+  ```
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
