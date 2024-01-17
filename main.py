@@ -10,8 +10,8 @@ import configparser
 import json
 import logging
 import os
-import sys
 import shutil
+import sys
 from configparser import ConfigParser
 from getpass import getpass
 
@@ -85,6 +85,7 @@ def check_up_to_date_github() -> None:
 def create_config() -> None:
     """
     Creates a config with default values.
+    :return: None
     """
     logging.warning('%sGenerating new Config.', YELLOW)
     cfg: ConfigParser = ConfigParser()
@@ -95,9 +96,9 @@ def create_config() -> None:
     cfg.set('User', 'password', "")
     cfg.set('User', 'token', "")
 
-    # Check if we are running via GitHub Actions or (Docker or via machine)
-    if os.getenv('GITHUB_ACTIONS') == 'true':
-        if os.getenv('IsJWT') == '1':
+    # we are running probably via docker or GitHub and have set environment variables
+    if os.getenv('MAIL') and os.getenv('PASS') or os.getenv('JWT_TOKEN'):
+        if os.getenv('JWT_TOKEN') != "":
             token = os.getenv('JWT_TOKEN')
             cfg.set('User', 'token', f"{token}")
             cfg.set('User', 'IsJWT', '1')
@@ -107,6 +108,8 @@ def create_config() -> None:
             cfg.set('User', 'email', f"{email}")
             cfg.set('User', 'password', f"{password}")
             cfg.set('User', 'IsJWT', '0')
+
+    # we are now running the script normally
     else:
         # Takes user input via commandline
         logging.info("%sPlease choose authentication method:", WHITE)
@@ -152,6 +155,7 @@ def create_config() -> None:
 def check_config_integrity(conf: ConfigParser) -> None:
     """
     Checks if the config file, is not empty, and folder exists.
+    :return: None
     """
     if not os.path.exists(config_folder):
         logging.warning('%sCreating config folder!', YELLOW)
@@ -277,7 +281,53 @@ def login(s: requests.session) -> json.loads:
         sys.exit(-1)
 
 
-def gen_token(s: requests.session, invalid: bool = False) -> str | None:
+def token_valid(token: dict, s: requests.Session) -> bool:
+    """
+    Checks if the token is valid
+    :param token: current token in the dictionary
+    :param s: currently used session
+    :return: True if the token is valid, False otherwise
+    """
+    # Check if the token is valid by trying to get the current balance with it
+
+    if "data" in token and "access_token" in token["data"]:
+        token = token["data"]["access_token"]
+        header: dict[str, str] = {'Authorization': f'Bearer {token}'}
+        dashboard: Response = s.get(urls['balance'], headers=header)
+        dashboard: dict = dashboard.json()
+        if 'data' in dashboard:
+            return True
+
+    logging.error('%sWrong Login Credentials. Please enter the right ones.', RED)
+    logging.info("%sClosing HoneygainAutoClaim! Due to false login Credentials.", WHITE)
+    return False
+
+
+def gen_token(s: requests.Session) -> None:
+    """
+    Generates a new token and writes it to HoneygainToken.json
+    :param s: currently used session
+    :return: None
+    """
+    logging.warning('%sGenerating new Token!', YELLOW)
+
+    # Generating new token if the file is empty or is invalid
+    with open(token_file, 'w', encoding='utf-8') as f:
+        # Remove what ever was in the file and jump to the beginning
+        f.truncate(0)
+        f.seek(0)
+
+        # Get json with the token
+        token: dict = login(s)
+
+        # Check if token is valid and doesn't have false credentials in it.
+        token_valid(token, s)
+
+        # Write the token to the token file
+        json.dump(token, f)
+
+
+def get_token(s: requests.Session, invalid: bool = False) -> str:
     """
     Gets the token from the HoneygainToken.json if existent and valid, if not generates a new one.
     :param s: currently used session
@@ -286,35 +336,25 @@ def gen_token(s: requests.session, invalid: bool = False) -> str | None:
     """
     # Creating token.json if not existent
     if not os.path.isfile(token_file) or os.stat(token_file).st_size == 0 or invalid:
-        logging.warning('%sGenerating new Token!', YELLOW)
-
-        # Generating new token if the file is empty or is invalid
-        with open(token_file, 'w', encoding='utf-8') as f:
-            # Remove what ever was in the file and jump to the beginning
-            f.truncate(0)
-            f.seek(0)
-
-            # Get json with the token
-            token: dict = login(s)
-
-            # Check if token is valid and doesn't have false credentials in it.
-            if "title" in token:
-                logging.error('%sWrong Login Credentials. Please enter the right ones.', RED)
-                return None
-            # Write the token to the token file
-            json.dump(token, f)
+        gen_token(s)
 
     # Reading the token from the file
     with open(token_file, 'r+', encoding='utf-8') as f:
         token: dict = json.load(f)
 
+    # check if the token from the file is valid
+    token_valid(token, s)
+
     # get the token
     return token["data"]["access_token"]
 
 
-def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
+def achievements_claim(s: requests.Session, header: dict[str, str]) -> bool:
     """
     function to claim achievements
+    :param s: currently used session
+    :param header: dictionary containing the header
+    :return: true if the claim is successful, otherwise false
     """
     # If the user disabled achievement claiming return False
     if not settings['achievements_bool']:
@@ -357,20 +397,68 @@ def achievements_claim(s: requests.session, header: dict[str, str]) -> bool:
     return True
 
 
+def pot_winnings(s: requests.Session, header: dict[str, str]) -> dict:
+    """
+    Get the current winning credits
+    :param s: currently used session
+    :param header: dictionary containing the header
+    :return: dictionary containing info about the winning credits
+    """
+    # Gets the pot winning credits
+    pot_winning: Response = s.get(urls['pot'], headers=header)
+    pot_winning: dict = pot_winning.json()
+    # Check if the response is valid if not close the program
+    if 'data' not in pot_winning:
+        logging.error('%sYour login credentials might be false, make sure to they are right '
+                      'and try again.', RED)
+        sys.exit(-1)
+    return pot_winning
+
+
+def pot_claim(s: requests.Session, header: dict[str, str]) -> None:
+    """
+    Claims the lucky pot
+    :param s: currently used session
+    :param header: dictionary containing the header
+    :return: None
+    """
+    # The post below sends the request, so that the pot claim gets made.
+    pot_claimed: Response = s.post(urls['pot'], headers=header)
+    pot_claimed: dict = pot_claimed.json()
+
+    # Check if the claim was successful, if not exit normally.
+    if 'type' in pot_claimed and pot_claimed['type'] == 400:
+        logging.error('%sYou don\'t have enough traffic shared yet to claim you reward. '
+                      'Please try again later.', RED)
+        return
+
+    logging.info(f'%sClaimed {pot_claimed["data"]["credits"]} Credits.', WHITE)
+
+
+def get_balance(s: requests.Session, header: dict[str, str]) -> dict:
+    """
+    Gets the balance of the current user
+    :param s: currently used session
+    :param header: dictionary containing the header
+    :return: balance as dictionary containing info about it
+    """
+    # Gets the current balance
+    balance: Response = s.get(urls['balance'], headers=header)
+    balance: dict = balance.json()
+    return balance
+
+
 def main() -> None:
     """
     Automatically claims the Lucky pot and prints out current stats.
+    :return: None
     """
 
     check_up_to_date_github()
 
     # Starting a new session
     with requests.session() as s:
-        token: str = gen_token(s)
-
-        if token is None:
-            logging.info("%sClosing HoneygainAutoClaim! Due to false login Credentials.", WHITE)
-            sys.exit(-1)
+        token: str = get_token(s)
 
         # Header for all further requests
         header: dict[str, str] = {'Authorization': f'Bearer {token}'}
@@ -378,44 +466,16 @@ def main() -> None:
         if not achievements_claim(s, header):
             logging.error('%sFailed to claim achievements.', RED)
 
-        # Check if the token is valid by trying to get the current balance with it
-        dashboard: Response = s.get(urls['balance'], headers=header)
-        dashboard: dict = dashboard.json()
-        if 'code' in dashboard and dashboard['code'] == 401:
-            logging.error('%sInvalid token generating new one.', RED)
-            token: str = gen_token(s, True)
-            header['Authorization'] = f'Bearer {token}'
+        pot_winning = pot_winnings(s, header)
 
-        # Gets the pot winning credits
-        pot_winning: Response = s.get(urls['pot'], headers=header)
-        pot_winning: dict = pot_winning.json()
-        # Check if the response is valid if not close the program
-        if 'data' not in pot_winning:
-            logging.error('%sYour login credentials might be false, make sure to they are right '
-                          'and try again.', RED)
-            sys.exit(-1)
         # Checks if the user wants to claim the lucky pot and do so if the pot isn't claimed yet.
         if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
-            # The post below sends the request, so that the pot claim gets made.
-            pot_claim: Response = s.post(urls['pot'], headers=header)
-            pot_claim: dict = pot_claim.json()
+            pot_claim(s, header)
 
-            # Check if the claim was successful, if not exit normally.
-            if 'type' in pot_claim and pot_claim['type'] == 400:
-                logging.error('%sYou don\'t have enough traffic shared yet to claim you reward. '
-                              'Please try again later.', RED)
-                return
+        got_pot_winning = pot_winnings(s, header)
+        logging.info(f'%sWon today {got_pot_winning["data"]["winning_credits"]} Credits.', WHITE)
 
-            logging.info(f'%sClaimed {pot_claim["data"]["credits"]} Credits.', WHITE)
-
-        # Gets the pot winning credits
-        pot_winning: Response = s.get(urls['pot'], headers=header)
-        pot_winning: dict = pot_winning.json()
-        logging.info(f'%sWon today {pot_winning["data"]["winning_credits"]} Credits.', WHITE)
-
-        # Gets the current balance
-        balance: Response = s.get(urls['balance'], headers=header)
-        balance: dict = balance.json()
+        balance = get_balance(s, header)
         logging.info(f'%sYou currently have {balance["data"]["payout"]["credits"]} Credits.', WHITE)
 
 

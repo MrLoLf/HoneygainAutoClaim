@@ -1,6 +1,6 @@
 # HoneygainAutoClaim  
 
-[![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)  
+[![CodeQL](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MrLoLf/HoneygainAutoClaim/actions/workflows/github-code-scanning/codeql)
   
 HoneygainAutoClaim is a 🐍 [Python](https://www.python.org/) script (bot) that **automatically claims your daily bonus** and **achievements** 
 from 🐝 [Honeygain](https://r.honeygain.me/ROSCH76C7D) 🍯.  
@@ -104,12 +104,15 @@ ___
   ```commandline
   git clone https://github.com/MrLoLf/HoneygainAutoClaim.git
   ```
-
-- Navigate in to the directory `HoneygainAutoClaim`
+  or use the **docker image** from docker hub
+  ```commandline
+  docker pull mrlolf/honeygainautoclaim:latest
+  ```
+- Navigate in to the directory `HoneygainAutoClaim` this isn't needed if the image was used
   ```commandline
   cd HoneygainAutoClaim
   ```  
-- To build the Dockerfile, run the command below:  
+- To build the Dockerfile, run the command below (this can be **skipped** if the **image** was used):  
   ```commandline  
   docker build -t honeygainautoclaim .
   ```  
@@ -117,10 +120,19 @@ ___
   ```commandline
   docker buildx build --platform linux/arm64 -t honeygainautoclaim .
   ```
-- To run the docker container  
+- To run the docker container use on of the commands below. 
+  When using the **image** simply **add** in front of honeygainautoclaim **mrlolf/** it should **look like this** `mrlolf/honeygainautoclaim` 
   ```commandline  
-  docker run -it --restart unless-stopped honeygainautoclaim  
-  ```  
+  docker run -it  honeygainautoclaim  
+  ```
+  or run it without the interactive menu
+  ```commandline
+  docker run -e MAIL="your@email.here" -e PASS="PASSWORD" honeygainautoclaim
+  ```
+  or just with the token
+  ```commandline
+  docker run -e JWT_TOKEN="YOURTOKEN" honeygainautoclaim
+  ```
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
@@ -168,7 +180,7 @@ am.
    crontab -e  
    ```  
    Or the windows equivalent via the Task Scheduler.  
-3. Add this line at the **bottom**   `0 8 * * * docker start <container_id> && docker stop <container_id>`. 
+3. Add this line at the **bottom**   `0 8 * * * docker start <container_id>`. 
    Make sure to replace <container_id> with the ID of your Docker container.
    After adding the start command, you have to stop the docker container, or it will run multiple times per minute.
   
