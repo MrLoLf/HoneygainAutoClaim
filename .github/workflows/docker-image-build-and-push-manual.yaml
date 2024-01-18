@@ -14,7 +14,7 @@ jobs:
         # perform secret check & put boolean result as an output
         shell: bash
         run: |
-          if [ "${{ secrets.DOCKER_USER }}" != '' ]; then
+          if [ "${{ secrets.DOCKER_USER }}" == '' ]; then
             echo "available=true" >> $GITHUB_OUTPUT;
           else
             echo "available=false" >> $GITHUB_OUTPUT;
