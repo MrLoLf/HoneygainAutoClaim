@@ -134,6 +134,7 @@ def create_config() -> None:
     cfg.add_section('Settings')
     cfg.set('Settings', 'Lucky Pot', 'True')
     cfg.set('Settings', 'Achievements', 'True')
+    cfg.set('Settings', 'Referrals', 'True')
 
     # This section holds all urls which are required for the program to run. This is made so if
     # the project gets abandoned the user doesn't have to change them in code. Instead, they can be
@@ -144,6 +145,9 @@ def create_config() -> None:
     cfg.set('Url', 'balance', 'https://dashboard.honeygain.com/api/v1/users/balances')
     cfg.set('Url', 'achievements', 'https://dashboard.honeygain.com/api/v1/achievements/')
     cfg.set('Url', 'achievement_claim', 'https://dashboard.honeygain.com/api/v1/achievements/claim')
+    cfg.set('Url', 'referrals', 'https://dashboard.honeygain.com/api/v1/referrals?items_per_page'
+                                '=100')
+    cfg.set('Url', 'referral_claim', 'https://dashboard.honeygain.com/api/v1/referrals/')
 
     # Write config to file
     with open(config_path, 'w', encoding='utf-8') as configfile:
@@ -191,7 +195,10 @@ def get_urls(cfg: ConfigParser) -> dict[str, str]:
                                      'pot': cfg.get('Url', 'pot'),
                                      'balance': cfg.get('Url', 'balance'),
                                      'achievements': cfg.get('Url', 'achievements'),
-                                     'achievement_claim': cfg.get('Url', 'achievement_claim')}
+                                     'achievement_claim': cfg.get('Url', 'achievement_claim'),
+                                     'referrals': cfg.get('Url', 'referrals'),
+                                     'referral_claim': cfg.get('Url', 'referral_claim')}
+
     except configparser.NoOptionError:
         create_config()
     except configparser.NoSectionError:
@@ -228,7 +235,9 @@ def get_settings(cfg: ConfigParser) -> dict[str, bool]:
     try:
         settings_dict: dict[str, bool] = {'lucky_pot': cfg.getboolean('Settings', 'Lucky Pot'),
                                           'achievements_bool': cfg.getboolean('Settings',
-                                                                              'Achievements')}
+                                                                              'Achievements'),
+                                          'referrals_bool': cfg.getboolean('Settings', 'Referrals')
+                                          }
     except configparser.NoOptionError:
         create_config()
     except configparser.NoSectionError:
@@ -448,6 +457,46 @@ def get_balance(s: requests.Session, header: dict[str, str]) -> dict:
     return balance
 
 
+def referrals_claim(s: requests.Session, header: dict[str, str], pages: int = 1) -> bool:
+    """
+        function to claim referrals
+        :param s: currently used session
+        :param header: dictionary containing the header
+        :param pages: number of pages to look at referrals
+        :return: true if the claim is successful, otherwise false
+        """
+    # If the user disabled referral claiming return False
+    if not settings['referrals_bool']:
+        return False
+
+    # Get all referrals
+    referrals: Response = s.get(urls['referrals'] + f"&page={pages}", headers=header)
+    referrals: dict = referrals.json()
+
+    # Check if the get is successful
+    if 'data' not in referrals:
+        return False
+
+    for referral in referrals['data']:
+        if ('id' in referral and 'promo' in referral and 'is_claimed' in referral['promo']
+                and 'traffic_bytes' in referral['promo'] and 'limit' in referral['promo'] and
+                (referral['promo']['traffic_bytes'] >= referral['promo']['limit'])):
+            claim = s.post(urls['referral_claim']+f'{referral["id"]}/promo/claim', headers=header)
+            if claim.status_code != 201:
+                logging.error(f'%sCould not claim referral for {referral["id"]}', RED)
+                continue
+            logging.info(f'%sClaimed successfully referral for {referral["id"]}', WHITE)
+
+    if ('meta' in referrals and 'pagination' in referrals['meta'] and 'total_pages'
+            in referrals['meta']['pagination'] and 'current_page' in referrals['meta']['pagination']
+            and (referrals['meta']['pagination']['total_pages'] >
+                 referrals['meta']['pagination']['current_page'])):
+        pages += 1
+        referrals_claim(s, header, pages)
+
+    return True
+
+
 def main() -> None:
     """
     Automatically claims the Lucky pot and prints out current stats.
@@ -463,14 +512,17 @@ def main() -> None:
         # Header for all further requests
         header: dict[str, str] = {'Authorization': f'Bearer {token}'}
 
-        if not achievements_claim(s, header):
-            logging.error('%sFailed to claim achievements.', RED)
-
         pot_winning = pot_winnings(s, header)
 
         # Checks if the user wants to claim the lucky pot and do so if the pot isn't claimed yet.
         if settings['lucky_pot'] and pot_winning['data']['winning_credits'] is None:
             pot_claim(s, header)
+
+        if not referrals_claim(s, header):
+            logging.error('%sFailed to claim referrals.', RED)
+
+        if not achievements_claim(s, header):
+            logging.error('%sFailed to claim achievements.', RED)
 
         got_pot_winning = pot_winnings(s, header)
         logging.info(f'%sWon today {got_pot_winning["data"]["winning_credits"]} Credits.', WHITE)
