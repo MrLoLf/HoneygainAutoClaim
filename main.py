@@ -352,7 +352,9 @@ def get_token(s: requests.Session, invalid: bool = False) -> str:
         token: dict = json.load(f)
 
     # check if the token from the file is valid
-    token_valid(token, s)
+    if not token_valid(token, s) and not invalid:
+        gen_token(s)
+        get_token(s, True)
 
     # get the token
     return token["data"]["access_token"]
@@ -481,7 +483,7 @@ def referrals_claim(s: requests.Session, header: dict[str, str], pages: int = 1)
         if ('id' in referral and 'promo' in referral and 'is_claimed' in referral['promo']
                 and 'traffic_bytes' in referral['promo'] and 'limit' in referral['promo'] and
                 (referral['promo']['traffic_bytes'] >= referral['promo']['limit'])):
-            claim = s.post(urls['referral_claim']+f'{referral["id"]}/promo/claim', headers=header)
+            claim = s.post(urls['referral_claim'] + f'{referral["id"]}/promo/claim', headers=header)
             if claim.status_code != 201:
                 logging.error(f'%sCould not claim referral for {referral["id"]}', RED)
                 continue
