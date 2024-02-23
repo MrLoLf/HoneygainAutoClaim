@@ -1,7 +1,7 @@
 name: Daily claim
 on:
   schedule:
-    - cron: '0 14 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
+    - cron: '0 8 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
 
 jobs:
   Daily:
