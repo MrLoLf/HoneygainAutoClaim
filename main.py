@@ -441,6 +441,7 @@ def pot_claim(s: requests.Session, header: dict[str, str]) -> None:
     if 'type' in pot_claimed and pot_claimed['type'] == 400:
         logging.error('%sYou don\'t have enough traffic shared yet to claim you reward. '
                       'Please try again later.', RED)
+        sys.exit(-1)
         return
 
     logging.info(f'%sClaimed {pot_claimed["data"]["credits"]} Credits.', WHITE)
