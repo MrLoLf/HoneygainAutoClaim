@@ -1,7 +1,7 @@
 name: Daily claim
 on:
   schedule:
-    - cron: '10 0 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
+    - cron: '0 13 * * *' # <- Use UTC Time +0 , change your time here ( 13 is hour , 0 is minutes ) and use 24-hour format
   workflow_dispatch:
 
 jobs:
