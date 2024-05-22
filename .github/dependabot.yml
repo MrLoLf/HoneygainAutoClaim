@@ -14,3 +14,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+
