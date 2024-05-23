@@ -62,6 +62,10 @@ ___
 
 ### 🐙 GitHub Actions  
 
+#### Disclaimer
+
+This method might be against GitHub TOS. Use it at your own risk.
+
 #### Benefits  
 
 - Run w/o PC, VPS, On the fly
@@ -79,6 +83,61 @@ ___
   6. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
   7. Use `JWT_TOKEN` and paste your JWT Token from Steps 3. Create another secret and use `IsJWT` set to `true`.
   8. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
+  9. Create a file in the .github folder und workflows called daily.yml and paste the below into the file. It should look like this:
+```yaml
+name: Daily claim
+on:
+  schedule:
+    - cron: '0 14 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
+
+jobs:
+  Daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for IsJWT Secret
+        id: IsJWT
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.IsJWT }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Set IsJWT Value
+        if: ${{ steps.IsJWT.outputs.available == 'true' }}
+        id: IsJWTValue
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.IsJWT }}" == 'false' ]; then
+            echo "value=0" >> $GITHUB_OUTPUT;
+          else
+            echo "value=1" >> $GITHUB_OUTPUT;
+          fi
+
+      - uses: actions/checkout@v4
+      - name: Run HoneygainPot with IsJWT Secret
+        if: ${{ steps.IsJWT.outputs.available == 'true' }}
+        run: python main.py
+        env:
+          MAIL: ${{ secrets.MAIL }} # <- DO NOT enter your email here, it may leak your information
+          PASS: ${{ secrets.PASS }} # <- DO NOT enter your password here, it may leak your information
+          JWT_TOKEN: ${{ secrets.JWT_TOKEN }} # <- DO NOT enter your JWT Token here, it may leak your information
+          IsJWT: ${{ steps.IsJWTValue.outputs.value }} # <- 0 = Use Mail and Pass ; 1 = Use Token (Default is 1)
+
+      - uses: actions/checkout@v4
+      - name: Run HoneygainPot without IsJWT Secret
+        if: ${{ steps.IsJWT.outputs.available != 'true' }}
+        run: python main.py
+        env:
+          MAIL: ${{ secrets.MAIL }} # <- DO NOT enter your email here, it may leak your information
+          PASS: ${{ secrets.PASS }} # <- DO NOT enter your password here, it may leak your information
+          JWT_TOKEN: ${{ secrets.JWT_TOKEN }} # <- DO NOT enter your JWT Token here, it may leak your information
+          IsJWT: 0 # <- 0 = Use Mail and Pass ; 1 = Use Token (Default is 1)
+
+```
 
 <p align="left">
   <img src="Img/get_token.png">
@@ -92,7 +151,7 @@ ___
   3. Go to `Settings > Secrets and Variables > Actions`, and click `New Repository secret`
   4. For the secret name, use `MAIL` and set your Honeygain email and `PASS` for your password and `IsJWT` set to `false`.
   5. Go to your forked repository 🍴 and go to the Actions tab and press `I understand my workflows, go ahead and enable them`
-
+  6. See Step 9 from the Use JWT Token section
 <p align="left">
   <img src="Img/GitSettings.png">
 </p>
