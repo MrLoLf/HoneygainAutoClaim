@@ -21,11 +21,30 @@ This project is licensed under the [MIT License](https://mit-license.org/). For 
 ___
 
 ## List of Content  
-  
-- [Installation/Usage](#usage)  
-- [Creating a schedule](#create-a-schedule)  
-- [Config changes](#config)  
-- [Change logging behavior](#logging)
+
+- [HoneygainAutoClaim](#honeygainautoclaim)
+  - [Disclaimer](#disclaimer)
+  - [License](#license)
+  - [List of Content](#list-of-content)
+  - [Requirements](#requirements)
+  - [Usage](#usage)
+    - [🪟 Windows / 🐧 Linux](#-windows---linux)
+    - [🐙 GitHub Actions](#-github-actions)
+      - [Benefits](#benefits)
+      - [Usage](#usage-1)
+        - [Use JWT Token](#use-jwt-token)
+        - [Use Mail and Password](#use-mail-and-password)
+    - [🐋 Docker](#-docker)
+    - [🕑 Create a schedule](#-create-a-schedule)
+      - [🐙 GitHub Actions](#-github-actions-1)
+      - [🐧 Linux](#-linux)
+      - [🪟 Windows](#-windows)
+  - [Config](#config)
+    - [🪟 Windows](#-windows-1)
+    - [🐧 Linux](#-linux-1)
+  - [Change logging behavior](#change-logging-behavior)
+    - [Disclaimer](#disclaimer-1)
+    - [Usage](#usage-2)
   
 ## Requirements
 
@@ -33,7 +52,7 @@ ___
 - [🐝 Honeygain account](https://r.honeygain.me/ROSCH76C7D)
   
   
-## <a name='usage'></a>Usage  
+## Usage  
 
 ### 🪟 Windows / 🐧 Linux  
 
@@ -195,9 +214,9 @@ jobs:
 - [Create a schedule](#schedule-docker) to run the program every day.  
 - Enjoy your **daily bonus**!  
   
-### <a name='create-a-schedule'></a> 🕑 Create a schedule
+### 🕑 Create a schedule
 
-#### <a name=github-actions></a> 🐙 GitHub Actions  
+#### 🐙 GitHub Actions  
 
 - Well, GitHub uses UTC time (UTC + 0) for scheduling workflows, so we should convert it to our timezone.
 
@@ -219,7 +238,7 @@ format):
       - cron: '0 22 * * *' # <- Use UTC Time +0 , change your time here ( 14 is hour , 0 is minutes ) and use 24-hour format
   ```
   
-#### <a name='schedule-linux'></a> 🐧 Linux  
+#### 🐧 Linux  
   
 1. ```commandline
    crontab -e  
@@ -227,10 +246,8 @@ format):
 2. Add this line at the **bottom** `0 8 * * * python3 /absolut folder path/main.py` to run the script every day at 8:00 
 am.  
   
-#### <a name='schedule-docker'></a> 🐋 Docker 
-  
-
-  
+#### 🐋 Docker 
+    
 1. You can find the docker container ID by running  
     ```commandline  
     docker ps -a  
@@ -261,7 +278,7 @@ am.
 14. Enter path to, e.g. `C:\HoneygainAutoClaim\main.py` script to `Add arguments`.
 15. Click on OK.
   
-## <a name='config'></a>Config  
+## Config
   
 ### 🪟 Windows  
   
@@ -271,15 +288,18 @@ am.
   
 ### 🐧 Linux  
   
-- ```commandline
-  nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml
-  ```
-## <a name='logging'></a>Change logging behavior
+```commandline
+nano /absoulut folder path/HoneygainAutoClaim/Config/HoneygainConfig.toml
+```
+
+## Change logging behavior
   
-### Disclaimer  
+### Disclaimer
+
 Only do this if you know what you are doing. You can break the program and logging with changes made here.
   
 ### Usage  
+
 - Open `main.py`
 - Edit this line
   ```python 
