@@ -1,5 +1,5 @@
 # Builder Image
-FROM cgr.dev/chainguard/python:latest-dev@sha256:628cdda3c986b81162a8bc06fd3ad1c9213d88bf7c1f16267736b598a4a20520 as builder
+FROM cgr.dev/chainguard/python:latest-dev@sha256:b03722a8ede8bc18e5654209d864c83f37fb3974e75f4f7e0d1fe5f49f0730d4 as builder
 
 ENV PATH="/app/venv/bin:$PATH"
 
